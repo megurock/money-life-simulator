@@ -1,0 +1,72 @@
+import { reactive, provide, inject, type InjectionKey } from 'vue'
+import type { SimulationParams } from '~/types/simulation'
+import { DEFAULT_PARAMS } from '~/utils/constants'
+
+const PARAMS_KEY: InjectionKey<SimulationParams> = Symbol('simulation-params')
+
+function createDefaultParams(): SimulationParams {
+  return {
+    basicInfo: { ...DEFAULT_PARAMS.basicInfo },
+    currentAssets: {
+      savings: DEFAULT_PARAMS.currentSavings,
+      nisaTsumitateContribution: 0,
+      nisaTsumitateBalance: 0,
+      nisaTsumitateExpectedReturn: 5.0,
+      nisaGrowthContribution: 0,
+      nisaGrowthBalance: 0,
+      nisaGrowthExpectedReturn: 5.0,
+      idecoContribution: 0,
+      idecoBalance: 0,
+      idecoExpectedReturn: 4.0,
+      tokuteiBalance: 0,
+      tokuteiCost: 0,
+      tokuteiExpectedReturn: 5.0
+    },
+    accounts: [
+      {
+        id: crypto.randomUUID(),
+        type: 'nisa',
+        label: 'NISA',
+        funds: [
+          {
+            id: crypto.randomUUID(),
+            name: '全世界株式インデックス',
+            monthlyContribution: 100_000,
+            expectedReturn: 5.0,
+            nisaSlot: 'tsumitate'
+          }
+        ]
+      }
+    ],
+    pension: { ...DEFAULT_PARAMS.pension },
+    incomesByAge: [
+      { fromAge: 30, toAge: 34, annualIncome: 4_000_000 },
+      { fromAge: 35, toAge: 44, annualIncome: 5_000_000 },
+      { fromAge: 45, toAge: 54, annualIncome: 6_500_000 },
+      { fromAge: 55, toAge: 64, annualIncome: 5_500_000 }
+    ],
+    expensesByAge: [
+      { fromAge: 30, toAge: 64, monthlyExpense: 250_000 },
+      { fromAge: 65, toAge: 90, monthlyExpense: 200_000 }
+    ],
+    specialExpenses: [],
+    specialIncomes: [],
+    inflationRate: DEFAULT_PARAMS.inflationRate
+  }
+}
+
+export function provideSimulationParams(): SimulationParams {
+  const params = reactive(createDefaultParams()) as SimulationParams
+  provide(PARAMS_KEY, params)
+  return params
+}
+
+export function useSimulationParams(): SimulationParams {
+  const params = inject(PARAMS_KEY)
+  if (!params) {
+    throw new Error('SimulationParams not provided. Call provideSimulationParams() in a parent component.')
+  }
+  return params
+}
+
+export { createDefaultParams }
