@@ -92,10 +92,30 @@ const remainingLifetime = computed(() =>
   Math.max(0, NISA_LIMITS.lifetime - nisaUsedAll.value)
 )
 
+// 積立期間を考慮して、枠を使い切る年齢を計算
+const nisaExhaustionAge = computed(() => {
+  if (!isNisa.value) return null
+  let total = nisaUsedAll.value
+  if (total >= NISA_LIMITS.lifetime) return params.basicInfo.currentAge
+
+  for (let age = params.basicInfo.currentAge + 1; age <= params.basicInfo.lifeExpectancy; age++) {
+    const yearContribution = props.account.funds
+      .filter((f) => {
+        const start = f.startAge ?? params.basicInfo.currentAge
+        const end = f.endAge ?? params.basicInfo.retirementAge
+        return age >= start && age <= end
+      })
+      .reduce((sum, f) => sum + f.monthlyContribution * 12, 0)
+    if (yearContribution <= 0) continue
+    total += yearContribution
+    if (total >= NISA_LIMITS.lifetime) return age
+  }
+  return null
+})
+
 const yearsToReachLifetimeLimit = computed(() => {
-  if (!isNisa.value || totalAnnualContribution.value <= 0) return null
-  if (remainingLifetime.value <= 0) return 0
-  return Math.ceil(remainingLifetime.value / totalAnnualContribution.value)
+  if (nisaExhaustionAge.value === null) return null
+  return nisaExhaustionAge.value - params.basicInfo.currentAge
 })
 
 const yearsUntilRetirement = computed(() =>
@@ -117,7 +137,8 @@ const sliderAge = ref(params.basicInfo.currentAge)
 const nisaProjectedUsed = computed(() => {
   if (!isNisa.value) return 0
   let total = nisaUsedAll.value
-  for (let age = params.basicInfo.currentAge; age <= sliderAge.value; age++) {
+  // 来年以降の積立を加算（今年分は cumulative に既に含まれている前提）
+  for (let age = params.basicInfo.currentAge + 1; age <= sliderAge.value; age++) {
     const yearContribution = props.account.funds
       .filter((f) => {
         const start = f.startAge ?? params.basicInfo.currentAge
