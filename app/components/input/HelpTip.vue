@@ -1,7 +1,9 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   text: string
 }>()
+
+const formattedText = computed(() => props.text.replace(/\\n/g, '\n'))
 </script>
 
 <template>
@@ -13,7 +15,7 @@ defineProps<{
     <UIcon name="i-lucide-circle-help" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-default text-sm" />
 
     <template #content>
-      <p class="max-w-xs whitespace-pre-line text-xs">{{ text }}</p>
+      <p class="max-w-xs whitespace-pre-line text-xs">{{ formattedText }}</p>
     </template>
   </UTooltip>
 </template>
