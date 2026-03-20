@@ -387,8 +387,6 @@ const contributionHint = computed(() => {
         </div>
       </div>
 
-      </div>
-
       <!-- NISA 上限警告 -->
       <div v-if="isNisa" class="space-y-1">
         <div v-if="alreadyExhausted" class="text-xs text-red-500 flex items-center gap-1">
