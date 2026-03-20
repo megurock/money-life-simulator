@@ -5,8 +5,11 @@ import { NISA_LIMITS } from './constants'
 interface AccountState {
   id: string
   type: Account['type']
-  balance: number
-  totalContribution: number
+  existingBalance: number       // 既存資産の残高
+  existingContribution: number  // 既存資産の元本
+  existingReturnRate: number    // 既存資産の利回り
+  newBalance: number            // 新規積立の残高
+  newContribution: number       // 新規積立の元本
 }
 
 /**
@@ -16,8 +19,11 @@ function initAccountStates(accounts: Account[]): AccountState[] {
   return accounts.map(account => ({
     id: account.id,
     type: account.type,
-    balance: account.currentBalance,
-    totalContribution: account.currentContribution
+    existingBalance: account.currentBalance,
+    existingContribution: account.currentContribution,
+    existingReturnRate: account.existingReturnRate / 100,
+    newBalance: 0,
+    newContribution: 0
   }))
 }
 
@@ -96,7 +102,22 @@ function getLoanPayment(params: SimulationParams, age: number): number {
 }
 
 /**
+ * 口座の合計残高
+ */
+function getAccountBalance(state: AccountState): number {
+  return state.existingBalance + state.newBalance
+}
+
+/**
+ * 口座の合計元本
+ */
+function getAccountContribution(state: AccountState): number {
+  return state.existingContribution + state.newContribution
+}
+
+/**
  * 口座から取り崩す（優先順: NISA → 特定 → iDeCo）
+ * 新規積立分から先に取り崩し、足りなければ既存資産から
  */
 function withdrawFromAccounts(
   accountStates: AccountState[],
@@ -113,28 +134,44 @@ function withdrawFromAccounts(
   for (const type of order) {
     if (remaining <= 0) break
 
-    const states = accountStates.filter(s => s.type === type && s.balance > 0)
+    const states = accountStates.filter(s => s.type === type && getAccountBalance(s) > 0)
     for (const state of states) {
       if (remaining <= 0) break
 
-      const withdrawAmount = Math.min(remaining, state.balance)
+      const totalBalance = getAccountBalance(state)
+      const totalContribution = getAccountContribution(state)
+      const withdrawAmount = Math.min(remaining, totalBalance)
       let tax = 0
 
       if (type === 'tokutei') {
-        const gainRatio = state.totalContribution > 0
-          ? Math.max(0, (state.balance - state.totalContribution) / state.balance)
+        const gainRatio = totalContribution > 0
+          ? Math.max(0, (totalBalance - totalContribution) / totalBalance)
           : 0
         tax = calcCapitalGainsTax(withdrawAmount, gainRatio)
       } else if (type === 'ideco') {
         tax = calcIDeCoLumpSumTax(withdrawAmount, idecoYears)
       }
 
-      state.balance -= withdrawAmount
-      if (state.balance > 0 && state.totalContribution > 0) {
-        const ratio = state.balance / (state.balance + withdrawAmount)
-        state.totalContribution *= ratio
-      } else {
-        state.totalContribution = 0
+      // 新規積立分から先に取り崩し
+      let toWithdraw = withdrawAmount
+      if (state.newBalance > 0) {
+        const fromNew = Math.min(toWithdraw, state.newBalance)
+        state.newBalance -= fromNew
+        if (state.newBalance > 0 && state.newContribution > 0) {
+          state.newContribution *= state.newBalance / (state.newBalance + fromNew)
+        } else {
+          state.newContribution = 0
+        }
+        toWithdraw -= fromNew
+      }
+      if (toWithdraw > 0 && state.existingBalance > 0) {
+        const fromExisting = Math.min(toWithdraw, state.existingBalance)
+        state.existingBalance -= fromExisting
+        if (state.existingBalance > 0 && state.existingContribution > 0) {
+          state.existingContribution *= state.existingBalance / (state.existingBalance + fromExisting)
+        } else {
+          state.existingContribution = 0
+        }
       }
 
       totalTax += tax
@@ -177,11 +214,20 @@ export function runSimulation(params: SimulationParams): SimulationResult {
       const account = accounts[i]!
       const state = accountStates[i]!
 
-      // 運用益（既存残高 + 積立分に対して）
-      const returnRate = calcWeightedReturn(account) / 100
-      const gain = state.balance * returnRate
-      state.balance += gain
-      investmentIncome += gain
+      // 既存資産の運用益
+      if (state.existingBalance > 0) {
+        const existingGain = state.existingBalance * state.existingReturnRate
+        state.existingBalance += existingGain
+        investmentIncome += existingGain
+      }
+
+      // 新規積立分の運用益
+      if (state.newBalance > 0) {
+        const newReturnRate = calcWeightedReturn(account) / 100
+        const newGain = state.newBalance * newReturnRate
+        state.newBalance += newGain
+        investmentIncome += newGain
+      }
 
       // 該当年齢でアクティブなファンドの積立
       let contribution = calcAnnualContribution(account, age, retirementAge)
@@ -194,8 +240,8 @@ export function runSimulation(params: SimulationParams): SimulationResult {
       }
 
       if (contribution > 0) {
-        state.balance += contribution
-        state.totalContribution += contribution
+        state.newBalance += contribution
+        state.newContribution += contribution
         cashBalance -= contribution
 
         if (account.type === 'ideco') {
@@ -250,10 +296,10 @@ export function runSimulation(params: SimulationParams): SimulationResult {
 
     const accountBalances: Record<string, number> = {}
     for (const state of accountStates) {
-      accountBalances[state.id] = Math.max(0, Math.round(state.balance))
+      accountBalances[state.id] = Math.max(0, Math.round(getAccountBalance(state)))
     }
 
-    const investmentTotal = accountStates.reduce((sum, s) => sum + Math.max(0, s.balance), 0)
+    const investmentTotal = accountStates.reduce((sum, s) => sum + Math.max(0, getAccountBalance(s)), 0)
     const totalBalance = Math.round(cashBalance + investmentTotal)
 
     const isDepleted = totalBalance <= 0

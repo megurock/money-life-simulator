@@ -17,8 +17,9 @@ export interface Account {
   type: AccountType
   label: string
   funds: Fund[]
-  currentBalance: number      // 現在の評価額（時価）
-  currentContribution: number // 累計投資額（元本）— NISA: 生涯枠消費量、iDeCo: 累計掛金、特定: 取得原価
+  currentBalance: number       // 現在の評価額（時価）
+  currentContribution: number  // 累計投資額（元本）— NISA: 生涯枠消費量、iDeCo: 累計掛金、特定: 取得原価
+  existingReturnRate: number   // 既存資産の期待利回り（年率 %）
 }
 
 export interface PensionConfig {

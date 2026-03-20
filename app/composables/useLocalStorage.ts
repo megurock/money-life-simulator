@@ -54,7 +54,8 @@ export function restoreParams(params: SimulationParams): void {
     ? saved.accounts.map(a => ({
         ...a,
         currentBalance: a.currentBalance ?? 0,
-        currentContribution: a.currentContribution ?? 0
+        currentContribution: a.currentContribution ?? 0,
+        existingReturnRate: a.existingReturnRate ?? 5.0
       }))
     : defaults.accounts
   params.pension = { ...defaults.pension, ...saved.pension }

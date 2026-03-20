@@ -21,6 +21,7 @@ function addAccount(type: AccountType) {
     label: labels[type],
     currentBalance: 0,
     currentContribution: 0,
+    existingReturnRate: 5.0,
     funds: []
   })
 }

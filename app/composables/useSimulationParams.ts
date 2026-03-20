@@ -15,6 +15,7 @@ function createDefaultParams(): SimulationParams {
         label: 'NISA',
         currentBalance: 0,
         currentContribution: 0,
+        existingReturnRate: 5.0,
         funds: [
           {
             id: crypto.randomUUID(),

@@ -211,7 +211,7 @@ const contributionHint = computed(() => {
 
     <div class="space-y-4">
       <!-- 現在の残高 -->
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-3 gap-3">
         <UFormField size="sm">
           <template #label>
             <span class="flex items-center gap-1">
@@ -229,6 +229,26 @@ const contributionHint = computed(() => {
             </span>
           </template>
           <InputMoneyInput v-model="account.currentBalance" size="sm" />
+        </UFormField>
+        <UFormField size="sm">
+          <template #label>
+            <span class="flex items-center gap-1">
+              既存資産の利回り
+              <InputHelpTip text="現在保有している資産に適用される年間の期待利回りです。新規積立のファンドとは独立して運用されます。" />
+            </span>
+          </template>
+          <UInput
+            v-model.number="account.existingReturnRate"
+            type="number"
+            size="sm"
+            :min="0"
+            :max="30"
+            :step="0.1"
+          >
+            <template #trailing>
+              <span class="text-xs text-gray-500">%</span>
+            </template>
+          </UInput>
         </UFormField>
       </div>
 
