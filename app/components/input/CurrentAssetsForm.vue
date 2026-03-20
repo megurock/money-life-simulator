@@ -7,21 +7,26 @@ function calcGainRate(balance: number, cost: number): string | null {
   return `${rate >= 0 ? '+' : ''}${rate.toFixed(1)}%`
 }
 
-// 口座別の集計
+// 口座別の集計（旧つみたて NISA を含む）
 const accountSummaries = computed(() => {
-  return params.accounts.map(a => ({
-    id: a.id,
-    label: a.label,
-    type: a.type,
-    balance: a.currentBalance,
-    contribution: a.currentContribution,
-    gain: a.currentBalance - a.currentContribution,
-    gainRate: calcGainRate(a.currentBalance, a.currentContribution)
-  }))
+  return params.accounts.map(a => {
+    const balance = a.currentBalance + (a.legacyTsumitateBalance ?? 0)
+    const contribution = a.currentContribution + (a.legacyTsumitateContribution ?? 0)
+    return {
+      id: a.id,
+      label: a.label,
+      type: a.type,
+      balance,
+      contribution,
+      gain: balance - contribution,
+      gainRate: calcGainRate(balance, contribution)
+    }
+  })
 })
 
 const totalAssets = computed(() => {
-  const investmentTotal = params.accounts.reduce((sum, a) => sum + a.currentBalance, 0)
+  const investmentTotal = params.accounts.reduce((sum, a) =>
+    sum + a.currentBalance + (a.legacyTsumitateBalance ?? 0), 0)
   return params.savings + investmentTotal
 })
 
