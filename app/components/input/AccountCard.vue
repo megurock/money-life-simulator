@@ -86,7 +86,7 @@ const totalAnnualContribution = computed(() =>
 const nisaUsedAll = computed(() =>
   params.accounts
     .filter(a => a.type === 'nisa')
-    .reduce((sum, a) => sum + a.currentContribution, 0)
+    .reduce((sum, a) => sum + (a.currentContribution ?? 0), 0)
 )
 const remainingLifetime = computed(() =>
   Math.max(0, NISA_LIMITS.lifetime - nisaUsedAll.value)

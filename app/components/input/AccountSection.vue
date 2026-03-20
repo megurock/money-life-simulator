@@ -19,6 +19,8 @@ function addAccount(type: AccountType) {
     id: crypto.randomUUID(),
     type,
     label: labels[type],
+    currentBalance: 0,
+    currentContribution: 0,
     funds: []
   })
 }

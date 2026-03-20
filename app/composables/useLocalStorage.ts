@@ -50,7 +50,13 @@ export function restoreParams(params: SimulationParams): void {
 
   params.basicInfo = { ...defaults.basicInfo, ...saved.basicInfo }
   params.savings = saved.savings ?? defaults.savings
-  params.accounts = saved.accounts?.length ? saved.accounts : defaults.accounts
+  params.accounts = saved.accounts?.length
+    ? saved.accounts.map(a => ({
+        ...a,
+        currentBalance: a.currentBalance ?? 0,
+        currentContribution: a.currentContribution ?? 0
+      }))
+    : defaults.accounts
   params.pension = { ...defaults.pension, ...saved.pension }
   params.incomesByAge = saved.incomesByAge?.length ? saved.incomesByAge : defaults.incomesByAge
   params.expensesByAge = saved.expensesByAge?.length ? saved.expensesByAge : defaults.expensesByAge
