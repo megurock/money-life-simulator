@@ -111,6 +111,30 @@ const alreadyExhausted = computed(() =>
   isNisa.value && nisaUsedAll.value >= NISA_LIMITS.lifetime
 )
 
+// 年齢スライダーによる生涯投資枠の推移
+const sliderAge = ref(params.basicInfo.currentAge)
+
+const nisaProjectedUsed = computed(() => {
+  if (!isNisa.value) return 0
+  let total = nisaUsedAll.value
+  for (let age = params.basicInfo.currentAge; age <= sliderAge.value; age++) {
+    const yearContribution = props.account.funds
+      .filter((f) => {
+        const start = f.startAge ?? params.basicInfo.currentAge
+        const end = f.endAge ?? params.basicInfo.retirementAge
+        return age >= start && age <= end
+      })
+      .reduce((sum, f) => sum + f.monthlyContribution * 12, 0)
+    total += yearContribution
+    if (total >= NISA_LIMITS.lifetime) return NISA_LIMITS.lifetime
+  }
+  return total
+})
+
+const nisaProjectedRemaining = computed(() =>
+  Math.max(0, NISA_LIMITS.lifetime - nisaProjectedUsed.value)
+)
+
 const nisaFundAddItems = [
   { label: 'つみたて投資枠', onSelect: () => addFund('tsumitate') },
   { label: '成長投資枠', onSelect: () => addFund('growth') }
@@ -179,21 +203,49 @@ const contributionHint = computed(() => {
         </UFormField>
       </div>
 
-      <!-- NISA 生涯投資枠バー -->
-      <div v-if="isNisa" class="space-y-1">
+      <!-- NISA 生涯投資枠バー + 年齢スライダー -->
+      <div v-if="isNisa" class="space-y-2">
         <div class="flex items-center justify-between text-xs text-gray-500">
-          <span>生涯投資枠</span>
-          <span>{{ Math.round(nisaUsedAll / 10000).toLocaleString() }}万円 / 1,800万円</span>
+          <span>生涯投資枠の推移</span>
+          <span class="font-medium">
+            {{ Math.round(nisaProjectedUsed / 10000).toLocaleString() }}万円 / 1,800万円
+          </span>
         </div>
-        <div class="w-full h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+
+        <!-- バー: 現在の投資額（濃い青）+ 将来の積立（薄い青） -->
+        <div class="w-full h-4 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden relative">
           <div
-            class="h-full rounded-full transition-all duration-300"
+            class="absolute h-full rounded-full transition-all duration-300"
+            :class="nisaProjectedUsed >= NISA_LIMITS.lifetime ? 'bg-red-400' : 'bg-blue-300'"
+            :style="{ width: `${Math.min(100, (nisaProjectedUsed / NISA_LIMITS.lifetime) * 100)}%` }"
+          />
+          <div
+            class="absolute h-full rounded-full"
             :class="nisaUsedAll >= NISA_LIMITS.lifetime ? 'bg-red-500' : 'bg-blue-500'"
             :style="{ width: `${Math.min(100, (nisaUsedAll / NISA_LIMITS.lifetime) * 100)}%` }"
           />
         </div>
-        <div class="text-xs text-right" :class="remainingLifetime > 0 ? 'text-gray-400' : 'text-red-500'">
-          残り: {{ Math.round(remainingLifetime / 10000).toLocaleString() }}万円
+
+        <!-- スライダー -->
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-gray-400 shrink-0">{{ params.basicInfo.currentAge }}歳</span>
+          <input
+            v-model.number="sliderAge"
+            type="range"
+            :min="params.basicInfo.currentAge"
+            :max="params.basicInfo.lifeExpectancy"
+            class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full appearance-none cursor-pointer accent-blue-500"
+          />
+          <span class="text-xs text-gray-400 shrink-0">{{ params.basicInfo.lifeExpectancy }}歳</span>
+        </div>
+
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-gray-500">
+            <strong>{{ sliderAge }}歳</strong>時点
+          </span>
+          <span :class="nisaProjectedRemaining > 0 ? 'text-gray-400' : 'text-red-500'">
+            残り: {{ Math.round(nisaProjectedRemaining / 10000).toLocaleString() }}万円
+          </span>
         </div>
       </div>
 

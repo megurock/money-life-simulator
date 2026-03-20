@@ -8,6 +8,8 @@ export interface Fund {
   monthlyContribution: number
   expectedReturn: number // 年率 %
   nisaSlot?: NisaSlot // NISA 口座の場合のみ
+  startAge?: number // 積立開始年齢
+  endAge?: number   // 積立終了年齢
 }
 
 export interface Account {

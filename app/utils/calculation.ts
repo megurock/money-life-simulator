@@ -22,10 +22,16 @@ function initAccountStates(accounts: Account[]): AccountState[] {
 }
 
 /**
- * 年間の積立額を計算（全ファンドの合計）
+ * 年間の積立額を計算（該当年齢でアクティブなファンドのみ）
  */
-function calcAnnualContribution(account: Account): number {
-  return account.funds.reduce((sum, fund) => sum + fund.monthlyContribution * 12, 0)
+function calcAnnualContribution(account: Account, age: number, retirementAge: number): number {
+  return account.funds
+    .filter((fund) => {
+      const start = fund.startAge ?? 0
+      const end = fund.endAge ?? retirementAge
+      return age >= start && age <= end
+    })
+    .reduce((sum, fund) => sum + fund.monthlyContribution * 12, 0)
 }
 
 /**
@@ -163,7 +169,6 @@ export function runSimulation(params: SimulationParams): SimulationResult {
   for (let age = currentAge; age <= lifeExpectancy; age++) {
     const yearsFromStart = age - currentAge
     const year = currentYear + yearsFromStart
-    const isRetired = age >= retirementAge
 
     let investmentIncome = 0
 
@@ -178,17 +183,17 @@ export function runSimulation(params: SimulationParams): SimulationResult {
       state.balance += gain
       investmentIncome += gain
 
-      // 引退前は積立を継続
-      if (!isRetired) {
-        let contribution = calcAnnualContribution(account)
+      // 該当年齢でアクティブなファンドの積立
+      let contribution = calcAnnualContribution(account, age, retirementAge)
 
-        // NISA の生涯投資枠チェック
-        if (account.type === 'nisa') {
-          const remaining = Math.max(0, NISA_LIMITS.lifetime - nisaLifetimeContribution)
-          contribution = Math.min(contribution, remaining)
-          nisaLifetimeContribution += contribution
-        }
+      // NISA の生涯投資枠チェック
+      if (account.type === 'nisa' && contribution > 0) {
+        const remaining = Math.max(0, NISA_LIMITS.lifetime - nisaLifetimeContribution)
+        contribution = Math.min(contribution, remaining)
+        nisaLifetimeContribution += contribution
+      }
 
+      if (contribution > 0) {
         state.balance += contribution
         state.totalContribution += contribution
         cashBalance -= contribution
