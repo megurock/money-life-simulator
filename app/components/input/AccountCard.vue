@@ -135,9 +135,10 @@ const alreadyExhausted = computed(() =>
 const sliderAge = ref(params.basicInfo.currentAge)
 
 const maxFundEndAge = computed(() => {
-  const ages = props.account.funds
-    .map(f => f.endAge ?? params.basicInfo.retirementAge)
-  return ages.length > 0 ? Math.max(...ages) : params.basicInfo.retirementAge
+  const definedAges = props.account.funds
+    .map(f => f.endAge)
+    .filter((age): age is number => age !== undefined && age !== null)
+  return definedAges.length > 0 ? Math.max(...definedAges) : params.basicInfo.lifeExpectancy
 })
 
 const nisaProjectedUsed = computed(() => {
