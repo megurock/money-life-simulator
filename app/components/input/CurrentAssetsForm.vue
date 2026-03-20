@@ -123,6 +123,35 @@ const pieOptions = computed(() => {
   }
 })
 
+const cashRatio = computed(() => {
+  if (totalAssets.value <= 0) return 0
+  return (params.savings / totalAssets.value) * 100
+})
+
+const cashAdvice = computed(() => {
+  const age = params.basicInfo.currentAge
+  const ratio = cashRatio.value
+  let recommended: string
+  let isHealthy: boolean
+  let reason: string
+
+  if (age < 40) {
+    recommended = '10〜20%'
+    isHealthy = ratio >= 10 && ratio <= 30
+    reason = `${age}歳はリスク許容度が高く、長期運用で回復期間を確保できるため、現金は少なめで問題ありません。`
+  } else if (age < 60) {
+    recommended = '20〜30%'
+    isHealthy = ratio >= 15 && ratio <= 40
+    reason = `${age}歳は引退が近づく時期です。暴落時の回復期間が限られるため、ある程度の現金確保が重要です。`
+  } else {
+    recommended = '30〜50%'
+    isHealthy = ratio >= 25 && ratio <= 60
+    reason = `${age}歳は取り崩しフェーズです。市場の下落時に投資を売却せずに済むよう、十分な現金を保持しましょう。`
+  }
+
+  return { recommended, isHealthy, reason }
+})
+
 const totalGain = computed(() =>
   accountSummaries.value.reduce((sum, a) => sum + a.gain, 0)
 )
@@ -166,6 +195,19 @@ const totalGainRate = computed(() =>
           {{ totalGainRate }}
           ({{ totalGain >= 0 ? '+' : '' }}{{ Math.round(totalGain / 10000).toLocaleString() }}万円)
         </span>
+      </div>
+
+      <!-- 現金比率アドバイス -->
+      <div class="border-t border-gray-100 dark:border-gray-800 pt-3 space-y-1">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-gray-500">現金比率</span>
+          <span class="font-medium" :class="cashAdvice.isHealthy ? 'text-gray-600 dark:text-gray-300' : 'text-amber-500'">
+            {{ cashRatio.toFixed(1) }}%（目安: {{ cashAdvice.recommended }}）
+          </span>
+        </div>
+        <p class="text-xs text-gray-400">
+          {{ cashAdvice.reason }}生活費の6ヶ月〜1年分は現金で保持するのが一般的です。
+        </p>
       </div>
     </div>
 
