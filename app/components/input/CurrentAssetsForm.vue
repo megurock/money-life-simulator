@@ -11,10 +11,15 @@ const nisaRemainingLifetime = computed(() =>
   Math.max(0, NISA_LIMITS.lifetime - nisaTotalContribution.value)
 )
 
-function calcGainRate(balance: number, cost: number): string {
-  if (cost <= 0) return '-'
+function calcGainRate(balance: number, cost: number): string | null {
+  if (!cost || cost <= 0) return null
+  if (!balance && balance !== 0) return null
   const rate = ((balance - cost) / cost) * 100
   return `${rate >= 0 ? '+' : ''}${rate.toFixed(1)}%`
+}
+
+function hasGainInfo(contribution: number, balance: number): boolean {
+  return contribution > 0 && balance >= 0
 }
 
 const nisaTsumitateGain = computed(() =>
@@ -118,7 +123,7 @@ const pieOptions = computed(() => {
         <div class="space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-xs font-medium text-blue-600 dark:text-blue-400">つみたて投資枠</span>
-            <span v-if="params.currentAssets.nisaTsumitateContribution > 0" class="text-xs" :class="nisaTsumitateGain >= 0 ? 'text-green-500' : 'text-red-500'">
+            <span v-if="hasGainInfo(params.currentAssets.nisaTsumitateContribution, params.currentAssets.nisaTsumitateBalance)" class="text-xs" :class="nisaTsumitateGain >= 0 ? 'text-green-500' : 'text-red-500'">
               {{ calcGainRate(params.currentAssets.nisaTsumitateBalance, params.currentAssets.nisaTsumitateContribution) }}
               ({{ nisaTsumitateGain >= 0 ? '+' : '' }}{{ (nisaTsumitateGain / 10000).toLocaleString() }}万円)
             </span>
@@ -169,7 +174,7 @@ const pieOptions = computed(() => {
         <div class="space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-xs font-medium text-green-600 dark:text-green-400">成長投資枠</span>
-            <span v-if="params.currentAssets.nisaGrowthContribution > 0" class="text-xs" :class="nisaGrowthGain >= 0 ? 'text-green-500' : 'text-red-500'">
+            <span v-if="hasGainInfo(params.currentAssets.nisaGrowthContribution, params.currentAssets.nisaGrowthBalance)" class="text-xs" :class="nisaGrowthGain >= 0 ? 'text-green-500' : 'text-red-500'">
               {{ calcGainRate(params.currentAssets.nisaGrowthBalance, params.currentAssets.nisaGrowthContribution) }}
               ({{ nisaGrowthGain >= 0 ? '+' : '' }}{{ (nisaGrowthGain / 10000).toLocaleString() }}万円)
             </span>
@@ -223,7 +228,7 @@ const pieOptions = computed(() => {
       <div class="space-y-2">
         <div class="flex items-center justify-between">
           <h4 class="text-sm font-medium">iDeCo</h4>
-          <span v-if="params.currentAssets.idecoContribution > 0" class="text-xs" :class="idecoGain >= 0 ? 'text-green-500' : 'text-red-500'">
+          <span v-if="hasGainInfo(params.currentAssets.idecoContribution, params.currentAssets.idecoBalance)" class="text-xs" :class="idecoGain >= 0 ? 'text-green-500' : 'text-red-500'">
             {{ calcGainRate(params.currentAssets.idecoBalance, params.currentAssets.idecoContribution) }}
             ({{ idecoGain >= 0 ? '+' : '' }}{{ (idecoGain / 10000).toLocaleString() }}万円)
           </span>
@@ -276,7 +281,7 @@ const pieOptions = computed(() => {
       <div class="space-y-2">
         <div class="flex items-center justify-between">
           <h4 class="text-sm font-medium">特定口座</h4>
-          <span v-if="params.currentAssets.tokuteiCost > 0" class="text-xs" :class="tokuteiGain >= 0 ? 'text-green-500' : 'text-red-500'">
+          <span v-if="hasGainInfo(params.currentAssets.tokuteiCost, params.currentAssets.tokuteiBalance)" class="text-xs" :class="tokuteiGain >= 0 ? 'text-green-500' : 'text-red-500'">
             {{ calcGainRate(params.currentAssets.tokuteiBalance, params.currentAssets.tokuteiCost) }}
             ({{ tokuteiGain >= 0 ? '+' : '' }}{{ (tokuteiGain / 10000).toLocaleString() }}万円)
           </span>
