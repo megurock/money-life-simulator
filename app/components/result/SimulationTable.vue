@@ -25,6 +25,8 @@ function formatMoney(value: number): string {
   return value.toLocaleString()
 }
 
+const hasLoans = computed(() => params.loans.length > 0)
+
 // 特別収入/支出がある年齢のセット
 const specialAges = computed(() => {
   const ages = new Set<number>()
@@ -88,12 +90,37 @@ const filteredResults = computed(() => {
         <thead>
           <tr class="border-b border-gray-200 dark:border-gray-700">
             <th class="py-2 px-3 text-left">年齢</th>
-            <th class="py-2 px-3 text-right">収入</th>
-            <th class="py-2 px-3 text-right">年間収入</th>
-            <th class="py-2 px-3 text-right">年間支出</th>
-            <th class="py-2 px-3 text-right">ローン</th>
-            <th class="py-2 px-3 text-right">税金</th>
-            <th class="py-2 px-3 text-right">総資産</th>
+            <th class="py-2 px-3 text-right">
+              <span class="inline-flex items-center gap-1">
+                収入
+                <InputHelpTip text="給与・パート等の年間手取り収入" />
+              </span>
+            </th>
+            <th class="py-2 px-3 text-right">
+              <span class="inline-flex items-center gap-1">
+                年間収入
+                <InputHelpTip text="給与 + 年金 + 特別収入 + 投資運用益の合計" />
+              </span>
+            </th>
+            <th class="py-2 px-3 text-right">
+              <span class="inline-flex items-center gap-1">
+                年間支出
+                <InputHelpTip text="生活費（インフレ補正済み）+ 特別支出の合計\n※ローン返済・税金は含みません" />
+              </span>
+            </th>
+            <th v-if="hasLoans" class="py-2 px-3 text-right">ローン</th>
+            <th class="py-2 px-3 text-right">
+              <span class="inline-flex items-center gap-1">
+                税金
+                <InputHelpTip text="年金に対する所得税・住民税\n+ 投資口座取り崩し時の譲渡益税\n+ iDeCo 一時金の退職所得税" />
+              </span>
+            </th>
+            <th class="py-2 px-3 text-right">
+              <span class="inline-flex items-center gap-1">
+                総資産
+                <InputHelpTip text="預貯金 + 全投資口座の評価額の合計" />
+              </span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -132,7 +159,7 @@ const filteredResults = computed(() => {
             <td class="py-2 px-3 text-right text-orange-600 dark:text-orange-400">
               {{ formatMoney(result.livingExpense + result.specialExpense) }}円
             </td>
-            <td class="py-2 px-3 text-right" :class="result.loanPayment > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-gray-300 dark:text-gray-600'">
+            <td v-if="hasLoans" class="py-2 px-3 text-right" :class="result.loanPayment > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-gray-300 dark:text-gray-600'">
               {{ result.loanPayment > 0 ? formatMoney(result.loanPayment) + '円' : '-' }}
             </td>
             <td class="py-2 px-3 text-right text-gray-500">

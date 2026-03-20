@@ -137,8 +137,8 @@ function getSpecialExpense(params: SimulationParams, age: number): number {
  */
 function getLoanPayment(params: SimulationParams, age: number): number {
   return params.loans
-    .filter(l => age >= l.startAge && age <= l.endAge)
-    .reduce((sum, l) => sum + l.monthlyPayment * 12, 0)
+    .filter(l => age >= params.basicInfo.currentAge && age <= l.endAge)
+    .reduce((sum, l) => sum + l.annualPayment, 0)
 }
 
 /**
@@ -347,7 +347,7 @@ export function runSimulation(params: SimulationParams): SimulationResult {
 
     // === 年金収入 ===
     const pensionIncome = calcAnnualPension(
-      pension.monthlyAmount,
+      pension.annualAmount,
       pension.startAge,
       age,
       pension.adjustmentRate

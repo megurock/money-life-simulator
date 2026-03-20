@@ -58,11 +58,21 @@ export function restoreParams(params: SimulationParams): void {
         existingReturnRate: a.existingReturnRate ?? 5.0
       }))
     : defaults.accounts
-  params.pension = { ...defaults.pension, ...saved.pension }
+  const savedPension = saved.pension as any
+  params.pension = {
+    ...defaults.pension,
+    ...saved.pension,
+    annualAmount: savedPension?.annualAmount ?? (savedPension?.monthlyAmount ? savedPension.monthlyAmount * 12 : defaults.pension.annualAmount)
+  }
   params.incomesByAge = saved.incomesByAge?.length ? saved.incomesByAge : defaults.incomesByAge
   params.expensesByAge = saved.expensesByAge?.length ? saved.expensesByAge : defaults.expensesByAge
   params.specialExpenses = saved.specialExpenses ?? defaults.specialExpenses
   params.specialIncomes = saved.specialIncomes ?? defaults.specialIncomes
-  params.loans = saved.loans ?? defaults.loans
+  params.loans = (saved.loans ?? defaults.loans).map((l: any) => ({
+    id: l.id,
+    name: l.name ?? '',
+    annualPayment: l.annualPayment ?? (l.monthlyPayment ? l.monthlyPayment * 12 : 0),
+    endAge: l.endAge ?? defaults.loans[0]?.endAge ?? 65
+  }))
   params.inflationRate = saved.inflationRate ?? defaults.inflationRate
 }

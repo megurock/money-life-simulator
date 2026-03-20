@@ -35,7 +35,6 @@ function addFund(nisaSlot?: NisaSlot) {
     name: '',
     monthlyContribution: 0,
     expectedReturn: 5.0,
-    startAge: params.basicInfo.currentAge,
     endAge: defaultEndAge,
     ...(nisaSlot ? { nisaSlot } : {})
   })
@@ -115,21 +114,19 @@ const remainingLifetime = computed(() =>
 )
 
 // 積立期間を考慮して、枠を使い切る年齢を計算
+const annualContribution = computed(() =>
+  props.account.funds.reduce((sum, f) => sum + f.monthlyContribution * 12, 0)
+)
+
 const nisaExhaustionAge = computed(() => {
   if (!isNisa.value) return null
+  const annual = annualContribution.value
+  if (annual <= 0) return null
   let total = nisaUsedAll.value
   if (total >= NISA_LIMITS.lifetime) return params.basicInfo.currentAge
 
   for (let age = params.basicInfo.currentAge + 1; age <= params.basicInfo.lifeExpectancy; age++) {
-    const yearContribution = props.account.funds
-      .filter((f) => {
-        const start = f.startAge ?? params.basicInfo.currentAge
-        const end = f.endAge ?? params.basicInfo.retirementAge
-        return age >= start && age <= end
-      })
-      .reduce((sum, f) => sum + f.monthlyContribution * 12, 0)
-    if (yearContribution <= 0) continue
-    total += yearContribution
+    total += annual
     if (total >= NISA_LIMITS.lifetime) return age
   }
   return null
@@ -156,27 +153,19 @@ const alreadyExhausted = computed(() =>
 // 年齢スライダーによる生涯投資枠の推移
 const sliderAge = ref(params.basicInfo.currentAge)
 
-const maxFundEndAge = computed(() => {
+const sliderMaxAge = computed(() => {
+  if (isNisa.value) return params.basicInfo.lifeExpectancy
   if (props.account.funds.length === 0) return params.basicInfo.lifeExpectancy
-  const definedAges = props.account.funds
-    .map(f => f.endAge)
-    .filter((age): age is number => typeof age === 'number' && age > 0)
-  return definedAges.length > 0 ? Math.max(...definedAges) : params.basicInfo.lifeExpectancy
+  const ages = props.account.funds.map(f => f.endAge ?? params.basicInfo.retirementAge)
+  return Math.max(...ages, params.basicInfo.currentAge)
 })
 
 const nisaProjectedUsed = computed(() => {
   if (!isNisa.value) return 0
+  const annual = annualContribution.value
   let total = nisaUsedAll.value
-  // 来年以降の積立を加算（今年分は cumulative に既に含まれている前提）
   for (let age = params.basicInfo.currentAge + 1; age <= sliderAge.value; age++) {
-    const yearContribution = props.account.funds
-      .filter((f) => {
-        const start = f.startAge ?? params.basicInfo.currentAge
-        const end = f.endAge ?? params.basicInfo.retirementAge
-        return age >= start && age <= end
-      })
-      .reduce((sum, f) => sum + f.monthlyContribution * 12, 0)
-    total += yearContribution
+    total += annual
     if (total >= NISA_LIMITS.lifetime) return NISA_LIMITS.lifetime
   }
   return total
@@ -232,6 +221,82 @@ const contributionHint = computed(() => {
     </template>
 
     <div class="space-y-4">
+      <!-- NISA 生涯投資枠 -->
+      <div v-if="isNisa" class="space-y-3">
+        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">生涯投資枠</h4>
+
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs text-gray-500">
+            <span>枠の推移</span>
+            <span class="font-medium">
+              {{ Math.round(nisaProjectedUsed / 10000).toLocaleString() }}万円 / 1,800万円
+            </span>
+          </div>
+
+          <!-- バー: 現在の投資額（濃い青）+ 将来の積立（薄い青） -->
+          <div class="w-full h-6 bg-gray-100 dark:bg-gray-800 overflow-hidden relative">
+            <div
+              class="absolute h-full transition-all duration-300"
+              :class="nisaProjectedUsed >= NISA_LIMITS.lifetime ? 'bg-red-400' : 'bg-blue-300'"
+              :style="{ width: `${Math.min(100, (nisaProjectedUsed / NISA_LIMITS.lifetime) * 100)}%` }"
+            />
+            <div
+              class="absolute h-full"
+              :class="nisaUsedAll >= NISA_LIMITS.lifetime ? 'bg-red-500' : 'bg-blue-500'"
+              :style="{ width: `${Math.min(100, (nisaUsedAll / NISA_LIMITS.lifetime) * 100)}%` }"
+            />
+          </div>
+
+          <!-- スライダー -->
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-gray-400 shrink-0">{{ params.basicInfo.currentAge }}歳</span>
+            <input
+              v-model.number="sliderAge"
+              type="range"
+              :min="params.basicInfo.currentAge"
+              :max="sliderMaxAge"
+              class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full appearance-none cursor-pointer accent-blue-500"
+            />
+            <span class="text-xs text-gray-400 shrink-0">{{ sliderMaxAge }}歳</span>
+          </div>
+
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-gray-500">
+              <strong>{{ sliderAge }}歳</strong>時点
+            </span>
+            <span :class="nisaProjectedRemaining > 0 ? 'text-gray-400' : 'text-red-500'">
+              残り: {{ Math.round(nisaProjectedRemaining / 10000).toLocaleString() }}万円
+            </span>
+          </div>
+        </div>
+
+        <!-- 上限警告 -->
+        <div class="space-y-1">
+          <div v-if="alreadyExhausted" class="text-xs text-red-500 flex items-center gap-1">
+            <UIcon name="i-lucide-alert-triangle" />
+            生涯投資枠（1,800万円）を使い切っています。新規の積立はできません。
+          </div>
+          <div v-if="tsumitateLimitExceeded" class="text-xs text-red-500 flex items-center gap-1">
+            <UIcon name="i-lucide-alert-triangle" />
+            つみたて投資枠の年間上限（120万円）を超過しています（現在: {{ (tsumitateTotalAnnual / 10000).toLocaleString() }}万円）
+          </div>
+          <div v-if="growthLimitExceeded" class="text-xs text-red-500 flex items-center gap-1">
+            <UIcon name="i-lucide-alert-triangle" />
+            成長投資枠の年間上限（240万円）を超過しています（現在: {{ (growthTotalAnnual / 10000).toLocaleString() }}万円）
+          </div>
+          <div v-if="!alreadyExhausted && willExhaustBeforeRetirement" class="text-xs text-amber-500 flex items-center gap-1">
+            <UIcon name="i-lucide-info" />
+            約{{ yearsToReachLifetimeLimit }}年後に生涯投資枠に到達します（引退まで残り{{ yearsUntilRetirement }}年）。到達後は積立が停止されます。
+          </div>
+          <div v-else-if="!alreadyExhausted && yearsToReachLifetimeLimit !== null" class="text-xs text-gray-400 flex items-center gap-1">
+            <UIcon name="i-lucide-info" />
+            現在のペースで約{{ yearsToReachLifetimeLimit }}年後に生涯投資枠に到達します
+          </div>
+        </div>
+      </div>
+
+      <USeparator v-if="isNisa" />
+
       <!-- 現在まで -->
       <div class="space-y-3">
         <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">現在まで（累計投資）</h4>
@@ -276,11 +341,11 @@ const contributionHint = computed(() => {
 
           <!-- 旧つみたて NISA -->
           <div class="space-y-1">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1">
               <span class="text-xs font-medium text-purple-600 dark:text-purple-400">旧つみたて NISA</span>
               <InputHelpTip text="2018〜2023年に旧つみたて NISA で購入した分です。新 NISA とは別枠で、生涯投資枠（1,800万円）には含まれません。\n非課税期間は購入年から20年間。期限切れ後は課税口座に移管され、移管後の含み益に20.315%が課税されます。" />
             </div>
-            <div class="grid grid-cols-4 gap-3">
+            <div class="grid grid-cols-3 gap-3">
               <UFormField label="元本" size="sm">
                 <InputMoneyInput v-model="account.legacyTsumitateContribution" size="sm" />
               </UFormField>
@@ -292,6 +357,8 @@ const contributionHint = computed(() => {
                   <template #trailing><span class="text-xs text-gray-500">%</span></template>
                 </UInput>
               </UFormField>
+            </div>
+            <div class="mt-2">
               <UFormField size="sm">
                 <template #label>
                   <span class="flex items-center gap-1">
@@ -299,7 +366,7 @@ const contributionHint = computed(() => {
                     <InputHelpTip text="購入年から20年後が非課税期限です。\n・2018年購入 → 2037年\n・2019年 → 2038年\n・2020年 → 2039年\n・2021年 → 2040年\n・2022年 → 2041年\n・2023年 → 2042年\n複数年にまたがる場合は、残高が大きい年の期限を入力してください。" />
                   </span>
                 </template>
-                <UInput v-model.number="account.legacyTsumitateEndYear" type="number" size="sm" placeholder="2042">
+                <UInput v-model.number="account.legacyTsumitateEndYear" type="number" size="sm" placeholder="2042" class="max-w-32">
                   <template #trailing><span class="text-xs text-gray-500">年</span></template>
                 </UInput>
               </UFormField>
@@ -341,76 +408,6 @@ const contributionHint = computed(() => {
         </div>
       </div>
 
-      <!-- NISA 生涯投資枠バー + 年齢スライダー -->
-      <div v-if="isNisa" class="space-y-2">
-        <div class="flex items-center justify-between text-xs text-gray-500">
-          <span>生涯投資枠の推移</span>
-          <span class="font-medium">
-            {{ Math.round(nisaProjectedUsed / 10000).toLocaleString() }}万円 / 1,800万円
-          </span>
-        </div>
-
-        <!-- バー: 現在の投資額（濃い青）+ 将来の積立（薄い青） -->
-        <div class="w-full h-6 bg-gray-100 dark:bg-gray-800 overflow-hidden relative">
-          <div
-            class="absolute h-full transition-all duration-300"
-            :class="nisaProjectedUsed >= NISA_LIMITS.lifetime ? 'bg-red-400' : 'bg-blue-300'"
-            :style="{ width: `${Math.min(100, (nisaProjectedUsed / NISA_LIMITS.lifetime) * 100)}%` }"
-          />
-          <div
-            class="absolute h-full"
-            :class="nisaUsedAll >= NISA_LIMITS.lifetime ? 'bg-red-500' : 'bg-blue-500'"
-            :style="{ width: `${Math.min(100, (nisaUsedAll / NISA_LIMITS.lifetime) * 100)}%` }"
-          />
-        </div>
-
-        <!-- スライダー -->
-        <div class="flex items-center gap-3">
-          <span class="text-xs text-gray-400 shrink-0">{{ params.basicInfo.currentAge }}歳</span>
-          <input
-            v-model.number="sliderAge"
-            type="range"
-            :min="params.basicInfo.currentAge"
-            :max="maxFundEndAge"
-            class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full appearance-none cursor-pointer accent-blue-500"
-          />
-          <span class="text-xs text-gray-400 shrink-0">{{ maxFundEndAge }}歳</span>
-        </div>
-
-        <div class="flex items-center justify-between text-xs">
-          <span class="text-gray-500">
-            <strong>{{ sliderAge }}歳</strong>時点
-          </span>
-          <span :class="nisaProjectedRemaining > 0 ? 'text-gray-400' : 'text-red-500'">
-            残り: {{ Math.round(nisaProjectedRemaining / 10000).toLocaleString() }}万円
-          </span>
-        </div>
-      </div>
-
-      <!-- NISA 上限警告 -->
-      <div v-if="isNisa" class="space-y-1">
-        <div v-if="alreadyExhausted" class="text-xs text-red-500 flex items-center gap-1">
-          <UIcon name="i-lucide-alert-triangle" />
-          生涯投資枠（1,800万円）を使い切っています。新規の積立はできません。
-        </div>
-        <div v-if="tsumitateLimitExceeded" class="text-xs text-red-500 flex items-center gap-1">
-          <UIcon name="i-lucide-alert-triangle" />
-          つみたて投資枠の年間上限（120万円）を超過しています（現在: {{ (tsumitateTotalAnnual / 10000).toLocaleString() }}万円）
-        </div>
-        <div v-if="growthLimitExceeded" class="text-xs text-red-500 flex items-center gap-1">
-          <UIcon name="i-lucide-alert-triangle" />
-          成長投資枠の年間上限（240万円）を超過しています（現在: {{ (growthTotalAnnual / 10000).toLocaleString() }}万円）
-        </div>
-        <div v-if="!alreadyExhausted && willExhaustBeforeRetirement" class="text-xs text-amber-500 flex items-center gap-1">
-          <UIcon name="i-lucide-info" />
-          約{{ yearsToReachLifetimeLimit }}年後に生涯投資枠に到達します（引退まで残り{{ yearsUntilRetirement }}年）。到達後は積立が停止されます。
-        </div>
-        <div v-else-if="!alreadyExhausted && yearsToReachLifetimeLimit !== null" class="text-xs text-gray-400 flex items-center gap-1">
-          <UIcon name="i-lucide-info" />
-          現在のペースで約{{ yearsToReachLifetimeLimit }}年後に生涯投資枠に到達します
-        </div>
-      </div>
-
       <USeparator />
 
       <!-- 現在から（積立設定） -->
@@ -426,8 +423,13 @@ const contributionHint = computed(() => {
             :key="fund.id"
             :fund="fund"
             :is-nisa="isNisa"
+            :account-type="account.type"
             @remove="removeFund"
           />
+
+          <p v-if="isNisa && nisaExhaustionAge !== null && !alreadyExhausted" class="text-xs text-gray-400">
+            ※ 生涯投資枠に {{ nisaExhaustionAge }}歳で到達するため、以降の積立は自動停止します
+          </p>
 
           <UDropdownMenu v-if="isNisa" :items="nisaFundAddItems">
             <UButton

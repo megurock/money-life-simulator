@@ -38,7 +38,7 @@ export interface Account {
 
 export interface PensionConfig {
   startAge: number
-  monthlyAmount: number
+  annualAmount: number
   adjustmentRate?: number // 繰上げ/繰下げ率（未指定時はデフォルト計算）
 }
 
@@ -71,10 +71,7 @@ export interface SpecialIncome {
 export interface Loan {
   id: string
   name: string
-  remainingBalance: number
-  annualRate: number
-  monthlyPayment: number
-  startAge: number
+  annualPayment: number
   endAge: number
 }
 

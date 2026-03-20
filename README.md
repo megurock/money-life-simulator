@@ -1,60 +1,205 @@
-# Nuxt Starter Template
+# 老後資金シミュレーター
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+老後に向けた資産形成の見通しを立てるための Web アプリケーション。現在の年齢・収入・支出・投資設定を入力すると、想定寿命までの資産推移をグラフとテーブルで可視化します。
 
-Use this template to get started with [Nuxt UI](https://ui.nuxt.com) quickly.
+## 機能概要
 
-- [Live demo](https://starter-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
+### 基本情報
 
-<a href="https://starter-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-    <img alt="Nuxt Starter Template" src="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png" width="830" height="466">
-  </picture>
-</a>
+- 現在の年齢、引退年齢、想定寿命を設定
+- 引退年齢・想定寿命のフィールドには、公的統計データに基づくツールチップを表示
+  - 引退年齢: 厚生労働省「高年齢者雇用状況等報告」（定年年齢の分布）
+  - 想定寿命: 厚生労働省「簡易生命表」+ 国立社会保障・人口問題研究所の将来推計
 
-> The starter template for Vue is on https://github.com/nuxt-ui-templates/starter-vue.
+### 資産
 
-## Quick Start
+#### 預貯金
 
-```bash [Terminal]
-npm create nuxt@latest -- -t ui
+- 現在の預貯金額を設定（3桁カンマ区切りで入力）
+
+#### 投資口座
+
+以下の口座タイプをサポート:
+
+| 口座タイプ | 税制 | 積立上限 |
+|-----------|------|---------|
+| **NISA** | 運用益非課税 | つみたて枠: 月10万円、成長枠: 月20万円、生涯投資枠: 1,800万円 |
+| **iDeCo** | 掛金所得控除、受取時退職所得控除 | 月23,000円（会社員の場合） |
+| **特定口座** | 譲渡益に20.315%課税 | 上限なし |
+
+**NISA 口座の機能:**
+- 新 NISA つみたて投資枠・成長投資枠・旧つみたて NISA の3枠を個別管理
+- 生涯投資枠（1,800万円）の消費状況をプログレスバー + 年齢スライダーで可視化
+- 年間枠・生涯枠の超過を自動検知し警告表示
+- 旧つみたて NISA は非課税期限（購入年から20年）を設定可能。期限切れ後は課税口座に自動移管
+
+**ファンド設定:**
+- 口座ごとに複数ファンドを追加可能
+- ファンド名、月額積立額、期待利回りを設定
+- NISA: 生涯投資枠到達で自動停止（終了年齢の手動設定は不要）
+- iDeCo / 特定口座: 積立終了年齢を設定可能
+
+### 収入
+
+#### 年齢別収入（手取り）
+
+- 年齢帯ごとの年間手取り額を設定
+- 「○歳から」形式で表示し、引退年齢までを自動計算
+- 引退年齢を変更すると最終エントリの終了年齢が自動連動
+- ツールチップに国税庁「民間給与実態統計調査」の年代別平均給与データを表示
+
+#### 年金
+
+- 年間受給額（65歳基準）を入力
+- 受給開始年齢を60〜75歳で設定
+- 繰上げ受給: 1月あたり0.4%減額
+- 繰下げ受給: 1月あたり0.7%増額
+- 調整後の年額・月額をリアルタイム表示
+
+#### 特別収入
+
+- 特定の年齢での一時的な収入（退職金、相続など）を個別設定
+
+### 支出
+
+#### 年齢別生活費
+
+- 年齢帯ごとの月額生活費を設定
+- 「○歳から」形式で表示し、想定寿命までを自動計算
+- 想定寿命を変更すると最終エントリの終了年齢が自動連動
+- 投資の積立額は含まない（別途計算）
+- ツールチップに総務省「家計調査」の年代別消費支出データを表示
+
+#### ローン
+
+- 住宅ローン、車のローンなど複数設定可能
+- 残債、年利、月額返済額、返済期間を設定
+- 年間返済額、総返済額、利息概算をリアルタイム表示
+
+#### インフレ率
+
+- 年間インフレ率を設定（デフォルト2.0%）
+- 生活費に複利で適用
+
+#### 特別支出
+
+- 特定の年齢での一時的な出費（住宅購入、教育費など）を個別設定
+
+### シミュレーション結果
+
+#### 資産推移グラフ
+
+- ECharts による面グラフで、年齢ごとの総資産推移を可視化
+
+#### 資産枯渇アラート
+
+- 資産が0になる年齢を検知し、想定寿命に対する警告を表示
+- 枯渇しない場合は最終残高を表示
+
+#### 年齢別収支テーブル
+
+- 表示間隔を1年/5年/10年で切り替え可能
+- 特別収入・支出がある年は自動的に表示しバッジで強調
+- 資産枯渇年を赤色で表示
+- ローン設定がない場合はローン列を非表示
+
+## シミュレーションロジック
+
+### 年間収支の計算
+
+各年齢について以下を計算:
+
+```
+年間収入 = 給与収入（手取り） + 年金収入 + 特別収入 + 投資運用益
+年間支出 = 生活費 × インフレ倍率 + 特別支出 + ローン返済 + 税金
 ```
 
-## Deploy your own
+### 投資運用
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=starter&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fstarter&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fstarter-dark.png&demo-url=https%3A%2F%2Fstarter-template.nuxt.dev%2F&demo-title=Nuxt%20Starter%20Template&demo-description=A%20minimal%20template%20to%20get%20started%20with%20Nuxt%20UI.)
+各口座について、以下の順序で毎年処理:
 
-## Setup
+1. **既存資産の運用**: 残高 × 利回り → 運用益を加算
+2. **旧つみたて NISA**: 非課税期限内は運用、期限切れ後は課税口座に移管（移管時の時価が新たな取得原価）
+3. **課税対象残高の運用**: 旧 NISA 移管後の資産の運用
+4. **新規積立分の運用**: 積立残高 × 加重平均利回り
+5. **新規積立**: ファンドの月額 × 12（NISA は生涯投資枠でキャップ）→ 預貯金から口座へ振替
 
-Make sure to install the dependencies:
+### 税金
+
+| 税目 | 対象 | 計算方法 |
+|------|------|---------|
+| 年金税 | 年金収入 | 公的年金等控除（65歳以上: 110万円、未満: 60万円）+ 基礎控除（48万円）を差し引き → 累進課税（所得税 + 復興特別所得税2.1%）+ 住民税10% |
+| 譲渡益税 | 特定口座の売却 | 売却額 × 含み益割合 × 20.315% |
+| iDeCo 退職所得税 | iDeCo 一時金受取 | （受取額 - 退職所得控除）× 1/2 → 累進課税 + 住民税10% |
+
+給与収入は手取りベースのため、給与に対する税計算は行いません。NISA は非課税期間中の運用益・売却益に課税なし。
+
+### 所得税率テーブル（累進課税）
+
+| 課税所得 | 税率 | 控除額 |
+|---------|------|--------|
+| 〜195万円 | 5% | 0円 |
+| 〜330万円 | 10% | 97,500円 |
+| 〜695万円 | 20% | 427,500円 |
+| 〜900万円 | 23% | 636,000円 |
+| 〜1,800万円 | 33% | 1,536,000円 |
+| 〜4,000万円 | 40% | 2,796,000円 |
+| 4,000万円超 | 45% | 4,796,000円 |
+
+### 収支バランス処理
+
+```
+純収入 = 給与 + 年金 + 特別収入 - 年金税
+赤字額 = 生活費 + 特別支出 + ローン - 純収入
+
+赤字の場合:
+  1. 投資口座から取り崩し（優先順: NISA → 特定口座 → iDeCo）
+     - 各口座内では新規積立分 → 既存資産 → 旧 NISA → 課税対象の順
+     - 取り崩し時に該当する税金が発生
+  2. 投資口座で不足する場合、預貯金を減算
+
+黒字の場合:
+  - 余剰を預貯金に加算
+```
+
+### iDeCo の退職所得控除
+
+| 加入年数 | 控除額 |
+|---------|--------|
+| 20年以下 | 40万円 × 加入年数（最低80万円） |
+| 20年超 | 800万円 + 70万円 ×（加入年数 - 20年） |
+
+## データ永続化
+
+- すべての設定値は localStorage に自動保存（500ms デバウンス）
+- ページリロード時に自動復元
+- 「リセット」ボタンで localStorage をクリアし、全設定を初期化
+
+## 技術スタック
+
+- [Nuxt](https://nuxt.com/) 4 + Vue 3
+- [Nuxt UI](https://ui.nuxt.com/) v4（Tailwind CSS v4）
+- [ECharts](https://echarts.apache.org/) + vue-echarts（グラフ描画）
+- TypeScript
+
+## セットアップ
 
 ```bash
+# 依存関係のインストール
 pnpm install
-```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
+# 開発サーバー起動（http://localhost:3000）
 pnpm dev
-```
 
-## Production
-
-Build the application for production:
-
-```bash
+# プロダクションビルド
 pnpm build
-```
 
-Locally preview production build:
-
-```bash
+# ビルドのプレビュー
 pnpm preview
-```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+# 型チェック
+pnpm typecheck
+
+# Lint
+pnpm lint
+```

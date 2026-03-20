@@ -9,6 +9,7 @@ const props = withDefaults(defineProps<{
   unit?: string
 }>(), {
   min: 0,
+  max: 9_999_999_999,
   size: 'md',
   unit: '円'
 })
@@ -17,28 +18,48 @@ const emit = defineEmits<{
   'update:modelValue': [value: number]
 }>()
 
-const displayValue = computed({
-  get: () => {
-    if (props.modelValue === 0 || props.modelValue === undefined) return ''
-    return props.modelValue.toLocaleString('ja-JP')
-  },
-  set: (val: string) => {
-    const num = Number(val.replace(/,/g, ''))
-    if (!isNaN(num)) {
-      const clamped = props.max !== undefined ? Math.min(num, props.max) : num
-      emit('update:modelValue', Math.max(props.min, clamped))
-    }
-  }
+const editing = ref(false)
+const rawInput = ref('')
+
+const displayValue = computed(() => {
+  if (!props.modelValue) return ''
+  return props.modelValue.toLocaleString('ja-JP')
 })
+
+const effectivePlaceholder = computed(() => {
+  if (props.placeholder) return props.placeholder
+  if (props.max < 9_999_999_999) return `上限 ${props.max.toLocaleString('ja-JP')}`
+  return ''
+})
+
+function onFocus() {
+  editing.value = true
+  rawInput.value = (!props.modelValue || props.modelValue === 0) ? '' : String(props.modelValue)
+}
+
+function onInput(val: string) {
+  rawInput.value = val.replace(/[^0-9]/g, '')
+}
+
+function onBlur() {
+  editing.value = false
+  const num = Number(rawInput.value)
+  if (!isNaN(num)) {
+    const clamped = Math.min(Math.max(num, props.min), props.max)
+    emit('update:modelValue', clamped)
+  }
+}
 </script>
 
 <template>
   <UInput
-    :model-value="displayValue"
-    @update:model-value="displayValue = $event"
+    :model-value="editing ? rawInput : displayValue"
+    @update:model-value="onInput"
+    @focus="onFocus"
+    @blur="onBlur"
     inputmode="numeric"
     :size="size"
-    :placeholder="placeholder"
+    :placeholder="effectivePlaceholder"
   >
     <template #trailing>
       <span :class="size === 'sm' ? 'text-xs' : 'text-sm'" class="text-gray-500">{{ unit }}</span>

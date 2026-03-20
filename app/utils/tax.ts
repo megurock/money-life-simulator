@@ -84,14 +84,14 @@ export function calcPensionAdjustmentRate(startAge: number): number {
  * 年間の年金受給額を計算（繰上げ/繰下げ調整済み）
  */
 export function calcAnnualPension(
-  monthlyAmount: number,
+  annualAmount: number,
   startAge: number,
   currentAge: number,
   adjustmentRate?: number
 ): number {
   if (currentAge < startAge) return 0
   const rate = adjustmentRate ?? calcPensionAdjustmentRate(startAge)
-  return monthlyAmount * rate * 12
+  return annualAmount * rate
 }
 
 /**

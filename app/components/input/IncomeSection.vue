@@ -6,8 +6,8 @@
     <template #header>
       <div class="flex items-center gap-2">
         <UIcon name="i-lucide-briefcase" />
-        <h3 class="font-semibold">収入（手取り）</h3>
-        <InputHelpTip text="給与・パート・家賃収入など、年齢帯ごとの年間手取り額を設定します。引退後の収入も設定可能です。" />
+        <h3 class="font-semibold">収入</h3>
+        <InputHelpTip text="給与・パート・家賃収入など、年齢帯ごとの年間手取り額を設定します。\n年金・投資運用益は別途自動計算されるため含めません。\n引退後の収入も設定可能です。" />
       </div>
     </template>
 

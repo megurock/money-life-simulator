@@ -13,8 +13,8 @@ const adjustmentPercent = computed(() => {
   return diff >= 0 ? `+${diff.toFixed(1)}%` : `${diff.toFixed(1)}%`
 })
 
-const adjustedMonthly = computed(() => {
-  return Math.round(params.pension.monthlyAmount * adjustmentRate.value)
+const adjustedAnnual = computed(() => {
+  return Math.round(params.pension.annualAmount * adjustmentRate.value)
 })
 </script>
 
@@ -51,13 +51,13 @@ const adjustedMonthly = computed(() => {
       <UFormField>
         <template #label>
           <span class="flex items-center gap-1">
-            月額受給額（65歳基準）
-            <InputHelpTip text="ねんきん定期便やねんきんネットで確認できる、65歳から受け取れる見込みの月額です。繰上げ/繰下げの調整は自動計算されます。" />
+            年間受給額（65歳基準）
+            <InputHelpTip text="ねんきん定期便やねんきんネットで確認できる、65歳から受け取れる見込みの年額です。繰上げ/繰下げの調整は自動計算されます。" />
           </span>
         </template>
-        <InputMoneyInput v-model="params.pension.monthlyAmount" />
+        <InputMoneyInput v-model="params.pension.annualAmount" />
         <template #hint>
-          調整後: 月額 {{ adjustedMonthly.toLocaleString() }}円
+          調整後: 年額 {{ adjustedAnnual.toLocaleString() }}円（月額 {{ Math.round(adjustedAnnual / 12).toLocaleString() }}円）
         </template>
       </UFormField>
     </div>

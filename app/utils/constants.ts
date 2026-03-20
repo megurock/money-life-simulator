@@ -60,6 +60,6 @@ export const DEFAULT_PARAMS = {
   inflationRate: DEFAULT_INFLATION_RATE,
   pension: {
     startAge: 65,
-    monthlyAmount: 150_000
+    annualAmount: 0
   }
 } as const

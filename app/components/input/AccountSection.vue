@@ -15,7 +15,7 @@ function addAccount(type: AccountType) {
     ideco: 'iDeCo',
     tokutei: '特定口座'
   }
-  params.accounts.push({
+  const base = {
     id: crypto.randomUUID(),
     type,
     label: labels[type],
@@ -23,7 +23,21 @@ function addAccount(type: AccountType) {
     currentContribution: 0,
     existingReturnRate: 5.0,
     funds: []
-  })
+  }
+  if (type === 'nisa') {
+    Object.assign(base, {
+      nisaTsumitateBalance: 0,
+      nisaTsumitateContribution: 0,
+      nisaTsumitateReturnRate: 5.0,
+      nisaGrowthBalance: 0,
+      nisaGrowthContribution: 0,
+      nisaGrowthReturnRate: 5.0,
+      legacyTsumitateBalance: 0,
+      legacyTsumitateContribution: 0,
+      legacyTsumitateReturnRate: 5.0
+    })
+  }
+  params.accounts.push(base)
 }
 
 function removeAccount(id: string) {
@@ -33,35 +47,39 @@ function removeAccount(id: string) {
 </script>
 
 <template>
-  <div class="space-y-4">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <UIcon name="i-lucide-landmark" />
-        <h3 class="font-semibold">投資口座</h3>
-        <InputHelpTip text="NISA・iDeCo・特定口座を追加し、現在の資産と今後の積立設定を管理します。" />
+  <UCard>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <UIcon name="i-lucide-landmark" />
+          <h3 class="font-semibold">投資口座</h3>
+          <InputHelpTip text="NISA・iDeCo・特定口座を追加し、現在の資産と今後の積立設定を管理します。" />
+        </div>
+        <UDropdownMenu
+          :items="accountTypes.map(t => ({ label: t.label, onSelect: () => addAccount(t.value) }))"
+        >
+          <UButton
+            icon="i-lucide-plus"
+            label="口座追加"
+            size="sm"
+            variant="soft"
+          />
+        </UDropdownMenu>
       </div>
-      <UDropdownMenu
-        :items="accountTypes.map(t => ({ label: t.label, onSelect: () => addAccount(t.value) }))"
-      >
-        <UButton
-          icon="i-lucide-plus"
-          label="口座追加"
-          size="sm"
-          variant="soft"
-        />
-      </UDropdownMenu>
-    </div>
+    </template>
 
-    <div v-if="params.accounts.length === 0" class="text-center py-8 text-gray-400">
-      <UIcon name="i-lucide-wallet" class="text-3xl mb-2" />
-      <p class="text-sm">口座を追加してください</p>
-    </div>
+    <div class="space-y-4">
+      <div v-if="params.accounts.length === 0" class="text-center py-6 text-gray-400">
+        <UIcon name="i-lucide-landmark" class="text-3xl mb-2" />
+        <p class="text-sm">口座を追加してください</p>
+      </div>
 
-    <InputAccountCard
-      v-for="account in params.accounts"
-      :key="account.id"
-      :account="account"
-      @remove="removeAccount"
-    />
-  </div>
+      <InputAccountCard
+        v-for="account in params.accounts"
+        :key="account.id"
+        :account="account"
+        @remove="removeAccount"
+      />
+    </div>
+  </UCard>
 </template>

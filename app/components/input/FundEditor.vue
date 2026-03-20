@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { Fund } from '~/types/simulation'
+import { NISA_LIMITS, IDECO_MONTHLY_LIMIT } from '~/utils/constants'
 
 const params = useSimulationParams()
 
 const props = defineProps<{
   fund: Fund
   isNisa?: boolean
+  accountType?: string
 }>()
 
 const emit = defineEmits<{
@@ -22,39 +24,81 @@ const slotColor = computed(() => {
   return props.fund.nisaSlot === 'tsumitate' ? 'info' : 'success'
 })
 
-const defaultStartAge = computed(() => params.basicInfo.currentAge)
 const defaultEndAge = computed(() => params.basicInfo.retirementAge)
 
-// startAge が currentAge 未満の場合は currentAge に補正
-watch(() => params.basicInfo.currentAge, (newAge) => {
-  if (props.fund.startAge !== undefined && props.fund.startAge < newAge) {
-    props.fund.startAge = newAge
-  }
+const monthlyMax = computed(() => {
+  if (props.fund.nisaSlot === 'tsumitate') return NISA_LIMITS.tsumitate / 12
+  if (props.fund.nisaSlot === 'growth') return NISA_LIMITS.growth / 12
+  if (props.accountType === 'ideco') return IDECO_MONTHLY_LIMIT
+  return undefined
 })
 </script>
 
 <template>
   <div class="space-y-1">
-    <div v-if="slotLabel" class="mb-1">
+    <div v-if="slotLabel" class="flex items-center justify-between mb-1">
       <UBadge :color="(slotColor as any)" variant="subtle" size="xs">
         {{ slotLabel }}
       </UBadge>
+      <UButton
+        v-if="isNisa"
+        icon="i-lucide-trash-2"
+        color="error"
+        variant="ghost"
+        size="xs"
+        @click="emit('remove', props.fund.id)"
+      />
     </div>
-    <div class="grid grid-cols-12 gap-2 items-end">
-      <div class="col-span-3">
+
+    <!-- NISA: 3列均等（現在までのレイアウトに合わせる） -->
+    <div v-if="isNisa" class="grid grid-cols-3 gap-3">
+      <UFormField label="ファンド名" size="sm">
+        <UInput
+          v-model="props.fund.name"
+          size="sm"
+          placeholder="例: S&P500"
+        />
+      </UFormField>
+      <UFormField label="月額積立" size="sm">
+        <InputMoneyInput
+          v-model="props.fund.monthlyContribution"
+          size="sm"
+          :max="monthlyMax"
+        />
+      </UFormField>
+      <UFormField label="利回り" size="sm">
+        <UInput
+          v-model.number="props.fund.expectedReturn"
+          type="number"
+          size="sm"
+          :min="0"
+          :max="30"
+          :step="0.1"
+        >
+          <template #trailing>
+            <span class="text-xs text-gray-500">%</span>
+          </template>
+        </UInput>
+      </UFormField>
+    </div>
+
+    <!-- iDeCo / 特定口座: 4列（ファンド名・月額・利回り・終了） + 削除 -->
+    <div v-else class="grid grid-cols-12 gap-2 items-end">
+      <div class="col-span-4">
         <UFormField label="ファンド名" size="sm">
           <UInput
             v-model="props.fund.name"
             size="sm"
-            placeholder="インデックスファンド"
+            placeholder="例: S&P500"
           />
         </UFormField>
       </div>
-      <div class="col-span-2">
+      <div class="col-span-3">
         <UFormField label="月額積立" size="sm">
           <InputMoneyInput
             v-model="props.fund.monthlyContribution"
             size="sm"
+            :max="monthlyMax"
           />
         </UFormField>
       </div>
@@ -70,22 +114,6 @@ watch(() => params.basicInfo.currentAge, (newAge) => {
           >
             <template #trailing>
               <span class="text-xs text-gray-500">%</span>
-            </template>
-          </UInput>
-        </UFormField>
-      </div>
-      <div class="col-span-2">
-        <UFormField label="開始" size="sm">
-          <UInput
-            v-model.number="props.fund.startAge"
-            type="number"
-            size="sm"
-            :placeholder="String(defaultStartAge)"
-            :min="params.basicInfo.currentAge"
-            :max="params.basicInfo.lifeExpectancy"
-          >
-            <template #trailing>
-              <span class="text-xs text-gray-500">歳</span>
             </template>
           </UInput>
         </UFormField>
