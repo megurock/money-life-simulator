@@ -15,6 +15,9 @@ interface AccountState {
   legacyContribution: number
   legacyReturnRate: number
   legacyEndYear: number         // 非課税期限（年）、0 = なし
+  // 旧つみたて NISA 非課税期限切れ後（課税対象）
+  taxableBalance: number
+  taxableContribution: number   // 移管時の時価が取得原価になる
 }
 
 /**
@@ -32,7 +35,9 @@ function initAccountStates(accounts: Account[]): AccountState[] {
     legacyBalance: account.legacyTsumitateBalance ?? 0,
     legacyContribution: account.legacyTsumitateContribution ?? 0,
     legacyReturnRate: (account.legacyTsumitateReturnRate ?? 0) / 100,
-    legacyEndYear: account.legacyTsumitateEndYear ?? 0
+    legacyEndYear: account.legacyTsumitateEndYear ?? 0,
+    taxableBalance: 0,
+    taxableContribution: 0
   }))
 }
 
@@ -114,14 +119,14 @@ function getLoanPayment(params: SimulationParams, age: number): number {
  * 口座の合計残高
  */
 function getAccountBalance(state: AccountState): number {
-  return state.existingBalance + state.newBalance + state.legacyBalance
+  return state.existingBalance + state.newBalance + state.legacyBalance + state.taxableBalance
 }
 
 /**
  * 口座の合計元本
  */
 function getAccountContribution(state: AccountState): number {
-  return state.existingContribution + state.newContribution + state.legacyContribution
+  return state.existingContribution + state.newContribution + state.legacyContribution + state.taxableContribution
 }
 
 /**
@@ -192,6 +197,21 @@ function withdrawFromAccounts(
         } else {
           state.legacyContribution = 0
         }
+        toWithdraw -= fromLegacy
+      }
+      // 課税対象残高から取り崩し（旧つみたて NISA 期限切れ分、譲渡益に20.315%課税）
+      if (toWithdraw > 0 && state.taxableBalance > 0) {
+        const fromTaxable = Math.min(toWithdraw, state.taxableBalance)
+        const gainRatio = state.taxableContribution > 0
+          ? Math.max(0, (state.taxableBalance - state.taxableContribution) / state.taxableBalance)
+          : 0
+        tax += calcCapitalGainsTax(fromTaxable, gainRatio)
+        state.taxableBalance -= fromTaxable
+        if (state.taxableBalance > 0 && state.taxableContribution > 0) {
+          state.taxableContribution *= state.taxableBalance / (state.taxableBalance + fromTaxable)
+        } else {
+          state.taxableContribution = 0
+        }
       }
 
       totalTax += tax
@@ -244,9 +264,9 @@ export function runSimulation(params: SimulationParams): SimulationResult {
       // 旧つみたて NISA の運用益
       if (state.legacyBalance > 0) {
         if (state.legacyEndYear > 0 && year >= state.legacyEndYear) {
-          // 非課税期限切れ → 既存資産（新 NISA と同じ扱い）に移管
-          state.existingBalance += state.legacyBalance
-          state.existingContribution += state.legacyContribution
+          // 非課税期限切れ → 課税口座に移管（移管時の時価が取得原価）
+          state.taxableBalance += state.legacyBalance
+          state.taxableContribution += state.legacyBalance // 移管時の時価 = 新たな取得原価
           state.legacyBalance = 0
           state.legacyContribution = 0
         } else {
@@ -254,6 +274,13 @@ export function runSimulation(params: SimulationParams): SimulationResult {
           state.legacyBalance += legacyGain
           investmentIncome += legacyGain
         }
+      }
+
+      // 課税対象残高の運用益（旧つみたて NISA 期限切れ後）
+      if (state.taxableBalance > 0) {
+        const taxableGain = state.taxableBalance * state.existingReturnRate
+        state.taxableBalance += taxableGain
+        investmentIncome += taxableGain
       }
 
       // 新規積立分の運用益
