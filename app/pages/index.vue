@@ -46,7 +46,7 @@ function resetAll() {
 
           <!-- 資産 -->
           <div class="space-y-4">
-            <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2">
+            <h2 class="text-lg font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
               <UIcon name="i-lucide-wallet" />
               資産
             </h2>
@@ -57,7 +57,7 @@ function resetAll() {
 
           <!-- 収入 -->
           <div class="space-y-4">
-            <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2">
+            <h2 class="text-lg font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
               <UIcon name="i-lucide-trending-up" />
               収入
             </h2>
@@ -67,7 +67,7 @@ function resetAll() {
 
           <!-- 支出 -->
           <div class="space-y-4">
-            <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2">
+            <h2 class="text-lg font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
               <UIcon name="i-lucide-trending-down" />
               支出
             </h2>
