@@ -35,8 +35,12 @@ function createDefaultParams(): SimulationParams {
       { fromAge: 55, toAge: 64, annualIncome: 5_500_000 }
     ],
     expensesByAge: [
-      { fromAge: 30, toAge: 64, monthlyExpense: 250_000 },
-      { fromAge: 65, toAge: 90, monthlyExpense: 200_000 }
+      { fromAge: 30, toAge: 44, monthlyExpense: 280_000 },
+      { fromAge: 45, toAge: 54, monthlyExpense: 300_000 },
+      { fromAge: 55, toAge: 64, monthlyExpense: 260_000 },
+      { fromAge: 65, toAge: 74, monthlyExpense: 220_000 },
+      { fromAge: 75, toAge: 84, monthlyExpense: 180_000 },
+      { fromAge: 85, toAge: 90, monthlyExpense: 150_000 }
     ],
     specialExpenses: [],
     specialIncomes: [],
