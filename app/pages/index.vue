@@ -46,6 +46,7 @@ function resetAll() {
           <InputIncomeSection />
           <InputAccountSection />
           <InputPensionForm />
+          <InputLoanSection />
           <InputExpenseSection />
           <InputInflationForm />
         </template>

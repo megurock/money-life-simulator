@@ -67,6 +67,16 @@ export interface SpecialIncome {
   description: string
 }
 
+export interface Loan {
+  id: string
+  name: string              // ローン名（住宅ローン、車など）
+  remainingBalance: number  // 現在の残債
+  annualRate: number        // 年利（%）
+  monthlyPayment: number    // 月額返済額
+  startAge: number          // 返済開始年齢
+  endAge: number            // 返済終了年齢
+}
+
 export interface SimulationParams {
   basicInfo: {
     currentAge: number
@@ -80,6 +90,7 @@ export interface SimulationParams {
   expensesByAge: ExpenseByAge[]
   specialExpenses: SpecialExpense[]
   specialIncomes: SpecialIncome[]
+  loans: Loan[]
   inflationRate: number
 }
 
@@ -93,6 +104,7 @@ export interface YearlyResult {
   totalIncome: number
   livingExpense: number
   specialExpense: number
+  loanPayment: number
   taxAmount: number
   totalExpense: number
   accountBalances: Record<string, number>

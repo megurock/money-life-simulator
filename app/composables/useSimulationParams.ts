@@ -51,6 +51,7 @@ function createDefaultParams(): SimulationParams {
     ],
     specialExpenses: [],
     specialIncomes: [],
+    loans: [],
     inflationRate: DEFAULT_PARAMS.inflationRate
   }
 }

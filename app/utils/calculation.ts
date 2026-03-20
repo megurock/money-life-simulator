@@ -83,6 +83,15 @@ function getSpecialExpense(params: SimulationParams, age: number): number {
 }
 
 /**
+ * 該当年齢のローン返済額合計を取得
+ */
+function getLoanPayment(params: SimulationParams, age: number): number {
+  return params.loans
+    .filter(l => age >= l.startAge && age <= l.endAge)
+    .reduce((sum, l) => sum + l.monthlyPayment * 12, 0)
+}
+
+/**
  * 口座から取り崩す（優先順: NISA → 特定 → iDeCo）
  * @returns 実際に取り崩せた額と発生した税金
  */
@@ -237,6 +246,7 @@ export function runSimulation(params: SimulationParams): SimulationResult {
     // === 支出 ===
     const livingExpense = getLivingExpense(params, age, yearsFromStart)
     const specialExpense = getSpecialExpense(params, age)
+    const loanPayment = getLoanPayment(params, age)
 
     // === 年金の税金 ===
     const pensionTax = calcPensionTax(pensionIncome, age)
@@ -244,7 +254,7 @@ export function runSimulation(params: SimulationParams): SimulationResult {
     // === 収支計算 ===
     const totalIncome = salaryIncome + pensionIncome + specialIncome
     const netIncome = salaryIncome + pensionIncome + specialIncome - pensionTax
-    const totalExpenseBeforeTax = livingExpense + specialExpense
+    const totalExpenseBeforeTax = livingExpense + specialExpense + loanPayment
 
     // 不足分を計算
     let deficit = totalExpenseBeforeTax - netIncome
@@ -329,6 +339,7 @@ export function runSimulation(params: SimulationParams): SimulationResult {
       totalIncome: Math.round(totalIncome + investmentIncome),
       livingExpense: Math.round(livingExpense),
       specialExpense: Math.round(specialExpense),
+      loanPayment: Math.round(loanPayment),
       taxAmount: Math.round(totalTax),
       totalExpense: Math.round(totalExpenseBeforeTax + totalTax),
       accountBalances,

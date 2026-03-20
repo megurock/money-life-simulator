@@ -63,5 +63,6 @@ export function restoreParams(params: SimulationParams): void {
   params.expensesByAge = saved.expensesByAge?.length ? saved.expensesByAge : defaults.expensesByAge
   params.specialExpenses = saved.specialExpenses ?? defaults.specialExpenses
   params.specialIncomes = saved.specialIncomes ?? defaults.specialIncomes
+  params.loans = saved.loans ?? defaults.loans
   params.inflationRate = saved.inflationRate ?? defaults.inflationRate
 }

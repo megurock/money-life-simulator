@@ -91,6 +91,7 @@ const filteredResults = computed(() => {
             <th class="py-2 px-3 text-right">収入</th>
             <th class="py-2 px-3 text-right">年間収入</th>
             <th class="py-2 px-3 text-right">年間支出</th>
+            <th class="py-2 px-3 text-right">ローン</th>
             <th class="py-2 px-3 text-right">税金</th>
             <th class="py-2 px-3 text-right">総資産</th>
           </tr>
@@ -130,6 +131,9 @@ const filteredResults = computed(() => {
             </td>
             <td class="py-2 px-3 text-right text-orange-600 dark:text-orange-400">
               {{ formatMoney(result.livingExpense + result.specialExpense) }}円
+            </td>
+            <td class="py-2 px-3 text-right" :class="result.loanPayment > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-gray-300 dark:text-gray-600'">
+              {{ result.loanPayment > 0 ? formatMoney(result.loanPayment) + '円' : '-' }}
             </td>
             <td class="py-2 px-3 text-right text-gray-500">
               {{ formatMoney(result.taxAmount) }}円
