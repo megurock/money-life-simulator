@@ -45,7 +45,7 @@ function resetAll() {
           <InputBasicInfoForm />
 
           <!-- 資産 -->
-          <div class="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-8">
+          <div class="space-y-4 border-t border-gray-200 dark:border-gray-700 mt-8 pt-8">
             <h2 class="text-lg font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
               <UIcon name="i-lucide-wallet" />
               資産
@@ -56,7 +56,7 @@ function resetAll() {
           </div>
 
           <!-- 収入 -->
-          <div class="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-8">
+          <div class="space-y-4 border-t border-gray-200 dark:border-gray-700 mt-8 pt-8">
             <h2 class="text-lg font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
               <UIcon name="i-lucide-trending-up" />
               収入
@@ -66,7 +66,7 @@ function resetAll() {
           </div>
 
           <!-- 支出 -->
-          <div class="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-8">
+          <div class="space-y-4 border-t border-gray-200 dark:border-gray-700 mt-8 pt-8">
             <h2 class="text-lg font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
               <UIcon name="i-lucide-trending-down" />
               支出
