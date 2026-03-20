@@ -41,15 +41,40 @@ function resetAll() {
     <main class="max-w-7xl mx-auto px-4 py-6">
       <LayoutDashboardLayout>
         <template #input>
+          <!-- 基本情報 -->
           <InputBasicInfoForm />
-          <InputCurrentAssetsForm />
-          <InputSavingsForm />
-          <InputAccountSection />
-          <InputIncomeSection />
-          <InputPensionForm />
-          <InputLoanSection />
-          <InputExpenseSection />
-          <InputInflationForm />
+
+          <!-- 資産 -->
+          <div class="space-y-4">
+            <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2">
+              <UIcon name="i-lucide-wallet" />
+              資産
+            </h2>
+            <InputCurrentAssetsForm />
+            <InputSavingsForm />
+            <InputAccountSection />
+          </div>
+
+          <!-- 収入 -->
+          <div class="space-y-4">
+            <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2">
+              <UIcon name="i-lucide-trending-up" />
+              収入
+            </h2>
+            <InputIncomeSection />
+            <InputPensionForm />
+          </div>
+
+          <!-- 支出 -->
+          <div class="space-y-4">
+            <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2">
+              <UIcon name="i-lucide-trending-down" />
+              支出
+            </h2>
+            <InputLoanSection />
+            <InputExpenseSection />
+            <InputInflationForm />
+          </div>
         </template>
 
         <template #result>
