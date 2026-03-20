@@ -41,40 +41,97 @@ const totalAssets = computed(() => {
   return a.savings + a.nisaTsumitateBalance + a.nisaGrowthBalance + a.idecoBalance + a.tokuteiBalance
 })
 
-const pieOptions = computed(() => {
-  const a = params.currentAssets
-  const data = [
-    { value: a.savings, name: '預貯金', itemStyle: { color: '#94a3b8' } },
-    { value: a.nisaTsumitateBalance, name: 'NISA つみたて', itemStyle: { color: '#3b82f6' } },
-    { value: a.nisaGrowthBalance, name: 'NISA 成長', itemStyle: { color: '#6366f1' } },
-    { value: a.idecoBalance, name: 'iDeCo', itemStyle: { color: '#22c55e' } },
-    { value: a.tokuteiBalance, name: '特定口座', itemStyle: { color: '#f59e0b' } }
-  ].filter(d => d.value > 0)
+interface PieItem {
+  value: number
+  name: string
+  itemStyle: { color: string }
+  cost: number       // 元本
+  gain: number       // 損益額
+  gainRate: string   // 損益率
+  returnRate: number // 期待利回り
+}
 
-  if (data.length === 0) return null
+const pieData = computed<PieItem[]>(() => {
+  const a = params.currentAssets
+  const items: PieItem[] = [
+    {
+      value: a.savings, name: '預貯金', itemStyle: { color: '#94a3b8' },
+      cost: a.savings, gain: 0, gainRate: '-', returnRate: 0
+    },
+    {
+      value: a.nisaTsumitateBalance, name: 'NISA つみたて', itemStyle: { color: '#3b82f6' },
+      cost: a.nisaTsumitateContribution, gain: nisaTsumitateGain.value,
+      gainRate: calcGainRate(a.nisaTsumitateBalance, a.nisaTsumitateContribution) ?? '-',
+      returnRate: a.nisaTsumitateExpectedReturn
+    },
+    {
+      value: a.nisaGrowthBalance, name: 'NISA 成長', itemStyle: { color: '#6366f1' },
+      cost: a.nisaGrowthContribution, gain: nisaGrowthGain.value,
+      gainRate: calcGainRate(a.nisaGrowthBalance, a.nisaGrowthContribution) ?? '-',
+      returnRate: a.nisaGrowthExpectedReturn
+    },
+    {
+      value: a.idecoBalance, name: 'iDeCo', itemStyle: { color: '#22c55e' },
+      cost: a.idecoContribution, gain: idecoGain.value,
+      gainRate: calcGainRate(a.idecoBalance, a.idecoContribution) ?? '-',
+      returnRate: a.idecoExpectedReturn
+    },
+    {
+      value: a.tokuteiBalance, name: '特定口座', itemStyle: { color: '#f59e0b' },
+      cost: a.tokuteiCost, gain: tokuteiGain.value,
+      gainRate: calcGainRate(a.tokuteiBalance, a.tokuteiCost) ?? '-',
+      returnRate: a.tokuteiExpectedReturn
+    }
+  ]
+  return items.filter(d => d.value > 0)
+})
+
+const pieOptions = computed(() => {
+  if (pieData.value.length === 0) return null
+  const total = totalAssets.value
 
   return {
     tooltip: {
       trigger: 'item',
       formatter(p: any) {
+        const item = pieData.value.find(d => d.name === p.name)
+        if (!item) return ''
         const pct = p.percent?.toFixed(1) ?? '0'
-        const man = Math.round(p.value / 10000).toLocaleString()
-        return `${p.marker} ${p.name}<br/>${man}万円（${pct}%）`
+        const valMan = Math.round(item.value / 10000).toLocaleString()
+        let html = `${p.marker} <strong>${p.name}</strong><br/>`
+        html += `評価額: ${valMan}万円（構成比 ${pct}%）<br/>`
+        if (item.name !== '預貯金' && item.cost > 0) {
+          const costMan = Math.round(item.cost / 10000).toLocaleString()
+          const gainMan = Math.round(item.gain / 10000).toLocaleString()
+          const gainSign = item.gain >= 0 ? '+' : ''
+          const gainColor = item.gain >= 0 ? '#22c55e' : '#ef4444'
+          html += `元本: ${costMan}万円<br/>`
+          html += `損益: <span style="color:${gainColor}">${gainSign}${gainMan}万円（${item.gainRate}）</span><br/>`
+          html += `期待利回り: ${item.returnRate}%`
+        }
+        return html
       }
     },
     legend: {
       orient: 'vertical',
       right: 0,
       top: 'center',
-      textStyle: { fontSize: 11 }
+      textStyle: { fontSize: 11 },
+      formatter(name: string) {
+        const item = pieData.value.find(d => d.name === name)
+        if (!item || total <= 0) return name
+        const pct = ((item.value / total) * 100).toFixed(1)
+        const man = Math.round(item.value / 10000).toLocaleString()
+        return `${name}  ${man}万円 (${pct}%)`
+      }
     },
     series: [{
       type: 'pie',
       radius: ['40%', '70%'],
-      center: ['35%', '50%'],
+      center: ['30%', '50%'],
       avoidLabelOverlap: false,
       label: { show: false },
-      data
+      data: pieData.value
     }]
   }
 })
