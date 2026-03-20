@@ -278,7 +278,7 @@ const contributionHint = computed(() => {
           <div class="space-y-1">
             <div class="flex items-center justify-between">
               <span class="text-xs font-medium text-purple-600 dark:text-purple-400">旧つみたて NISA</span>
-              <InputHelpTip text="2018〜2023年に旧つみたて NISA で購入した分です。非課税期間は購入年から20年間。期限切れ後は課税口座に移管され、以降の含み益に20.315%が課税されます。" />
+              <InputHelpTip text="2018〜2023年に旧つみたて NISA で購入した分です。新 NISA とは別枠で、生涯投資枠（1,800万円）には含まれません。\n非課税期間は購入年から20年間。期限切れ後は課税口座に移管され、移管後の含み益に20.315%が課税されます。" />
             </div>
             <div class="grid grid-cols-4 gap-3">
               <UFormField label="元本" size="sm">
@@ -296,7 +296,7 @@ const contributionHint = computed(() => {
                 <template #label>
                   <span class="flex items-center gap-1">
                     非課税期限
-                    <InputHelpTip text="非課税期間が終了する年（西暦）です。例: 2018年購入分は2037年、2023年購入分は2042年。" />
+                    <InputHelpTip text="購入年から20年後が非課税期限です。\n・2018年購入 → 2037年\n・2019年 → 2038年\n・2020年 → 2039年\n・2021年 → 2040年\n・2022年 → 2041年\n・2023年 → 2042年\n複数年にまたがる場合は、残高が大きい年の期限を入力してください。" />
                   </span>
                 </template>
                 <UInput v-model.number="account.legacyTsumitateEndYear" type="number" size="sm" placeholder="2042">
