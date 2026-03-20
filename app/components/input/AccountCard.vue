@@ -134,6 +134,12 @@ const alreadyExhausted = computed(() =>
 // 年齢スライダーによる生涯投資枠の推移
 const sliderAge = ref(params.basicInfo.currentAge)
 
+const maxFundEndAge = computed(() => {
+  const ages = props.account.funds
+    .map(f => f.endAge ?? params.basicInfo.retirementAge)
+  return ages.length > 0 ? Math.max(...ages) : params.basicInfo.retirementAge
+})
+
 const nisaProjectedUsed = computed(() => {
   if (!isNisa.value) return 0
   let total = nisaUsedAll.value
@@ -234,14 +240,14 @@ const contributionHint = computed(() => {
         </div>
 
         <!-- バー: 現在の投資額（濃い青）+ 将来の積立（薄い青） -->
-        <div class="w-full h-4 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden relative">
+        <div class="w-full h-6 bg-gray-100 dark:bg-gray-800 overflow-hidden relative">
           <div
-            class="absolute h-full rounded-full transition-all duration-300"
+            class="absolute h-full transition-all duration-300"
             :class="nisaProjectedUsed >= NISA_LIMITS.lifetime ? 'bg-red-400' : 'bg-blue-300'"
             :style="{ width: `${Math.min(100, (nisaProjectedUsed / NISA_LIMITS.lifetime) * 100)}%` }"
           />
           <div
-            class="absolute h-full rounded-full"
+            class="absolute h-full"
             :class="nisaUsedAll >= NISA_LIMITS.lifetime ? 'bg-red-500' : 'bg-blue-500'"
             :style="{ width: `${Math.min(100, (nisaUsedAll / NISA_LIMITS.lifetime) * 100)}%` }"
           />
@@ -254,10 +260,10 @@ const contributionHint = computed(() => {
             v-model.number="sliderAge"
             type="range"
             :min="params.basicInfo.currentAge"
-            :max="params.basicInfo.lifeExpectancy"
+            :max="maxFundEndAge"
             class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full appearance-none cursor-pointer accent-blue-500"
           />
-          <span class="text-xs text-gray-400 shrink-0">{{ params.basicInfo.lifeExpectancy }}歳</span>
+          <span class="text-xs text-gray-400 shrink-0">{{ maxFundEndAge }}歳</span>
         </div>
 
         <div class="flex items-center justify-between text-xs">
