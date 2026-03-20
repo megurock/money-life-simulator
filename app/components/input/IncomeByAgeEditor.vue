@@ -7,7 +7,10 @@ function recalcToAges() {
     if (i < entries.length - 1) {
       entries[i].toAge = entries[i + 1].fromAge - 1
     } else {
-      entries[i].toAge = params.basicInfo.retirementAge - 1
+      // 引退年齢以降のエントリは想定寿命まで、それ以前は引退年齢まで
+      entries[i].toAge = entries[i].fromAge >= params.basicInfo.retirementAge
+        ? params.basicInfo.lifeExpectancy
+        : params.basicInfo.retirementAge - 1
     }
   }
 }
@@ -15,10 +18,11 @@ function recalcToAges() {
 function addEntry() {
   const lastEntry = params.incomesByAge[params.incomesByAge.length - 1]
   const fromAge = lastEntry ? lastEntry.toAge + 1 : params.basicInfo.currentAge
+  const isPostRetirement = fromAge >= params.basicInfo.retirementAge
   params.incomesByAge.push({
     fromAge,
-    toAge: params.basicInfo.retirementAge - 1,
-    annualIncome: lastEntry?.annualIncome ?? 3_500_000
+    toAge: isPostRetirement ? params.basicInfo.lifeExpectancy : params.basicInfo.retirementAge - 1,
+    annualIncome: 0
   })
   recalcToAges()
 }
@@ -32,7 +36,7 @@ function onFromAgeChange() {
   recalcToAges()
 }
 
-watch(() => params.basicInfo.retirementAge, () => {
+watch([() => params.basicInfo.retirementAge, () => params.basicInfo.lifeExpectancy], () => {
   recalcToAges()
 })
 </script>
@@ -79,7 +83,7 @@ watch(() => params.basicInfo.retirementAge, () => {
     </div>
 
     <p v-if="params.incomesByAge.length > 0" class="text-xs text-gray-400">
-      ※ 引退（{{ params.basicInfo.retirementAge }}歳）まで
+      ※ 引退（{{ params.basicInfo.retirementAge }}歳）以降は収入0として計算されます。引退後に収入がある場合は期間を追加してください
     </p>
 
     <UButton

@@ -105,7 +105,7 @@ const filteredResults = computed(() => {
             <th class="py-2 px-3 text-right">
               <span class="inline-flex items-center gap-1">
                 年間支出
-                <InputHelpTip text="生活費（インフレ補正済み）+ 特別支出の合計\n※ローン返済・税金は含みません" />
+                <InputHelpTip text="生活費（インフレ補正済み）+ 特別支出 + ローン + 税金の合計\n※投資拠出は総資産内で振り替えられるため含みません" />
               </span>
             </th>
             <th v-if="hasLoans" class="py-2 px-3 text-right">ローン</th>
@@ -157,7 +157,7 @@ const filteredResults = computed(() => {
               {{ formatMoney(result.totalIncome) }}円
             </td>
             <td class="py-2 px-3 text-right text-orange-600 dark:text-orange-400">
-              {{ formatMoney(result.livingExpense + result.specialExpense) }}円
+              {{ formatMoney(result.totalExpense) }}円
             </td>
             <td v-if="hasLoans" class="py-2 px-3 text-right" :class="result.loanPayment > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-gray-300 dark:text-gray-600'">
               {{ result.loanPayment > 0 ? formatMoney(result.loanPayment) + '円' : '-' }}

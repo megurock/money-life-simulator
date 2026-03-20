@@ -75,4 +75,5 @@ export function restoreParams(params: SimulationParams): void {
     endAge: l.endAge ?? defaults.loans[0]?.endAge ?? 65
   }))
   params.inflationRate = saved.inflationRate ?? defaults.inflationRate
+  params.withdrawalStrategy = saved.withdrawalStrategy ?? defaults.withdrawalStrategy
 }

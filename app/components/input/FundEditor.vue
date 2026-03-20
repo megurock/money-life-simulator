@@ -24,7 +24,17 @@ const slotColor = computed(() => {
   return props.fund.nisaSlot === 'tsumitate' ? 'info' : 'success'
 })
 
-const defaultEndAge = computed(() => params.basicInfo.retirementAge)
+const IDECO_MAX_AGE = 65
+
+const defaultEndAge = computed(() =>
+  props.accountType === 'ideco'
+    ? Math.min(params.basicInfo.retirementAge, IDECO_MAX_AGE)
+    : params.basicInfo.retirementAge
+)
+
+const endAgeMax = computed(() =>
+  props.accountType === 'ideco' ? IDECO_MAX_AGE : params.basicInfo.lifeExpectancy
+)
 
 const monthlyMax = computed(() => {
   if (props.fund.nisaSlot === 'tsumitate') return NISA_LIMITS.tsumitate / 12
@@ -126,7 +136,7 @@ const monthlyMax = computed(() => {
             size="sm"
             :placeholder="String(defaultEndAge)"
             :min="params.basicInfo.currentAge"
-            :max="params.basicInfo.lifeExpectancy"
+            :max="endAgeMax"
           >
             <template #trailing>
               <span class="text-xs text-gray-500">歳</span>

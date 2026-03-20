@@ -75,6 +75,8 @@ export interface Loan {
   endAge: number
 }
 
+export type WithdrawalStrategy = 'nisa-first' | 'savings-first' | 'tax-efficient'
+
 export interface SimulationParams {
   basicInfo: {
     currentAge: number
@@ -90,6 +92,7 @@ export interface SimulationParams {
   specialIncomes: SpecialIncome[]
   loans: Loan[]
   inflationRate: number
+  withdrawalStrategy: WithdrawalStrategy
 }
 
 export interface YearlyResult {
@@ -103,6 +106,7 @@ export interface YearlyResult {
   livingExpense: number
   specialExpense: number
   loanPayment: number
+  investmentContribution: number
   taxAmount: number
   totalExpense: number
   accountBalances: Record<string, number>

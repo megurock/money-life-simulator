@@ -156,23 +156,36 @@ function getAccountContribution(state: AccountState): number {
 }
 
 /**
- * 口座から取り崩す（優先順: NISA → 特定 → iDeCo）
- * 新規積立分から先に取り崩し、足りなければ既存資産から
+ * 口座から取り崩す
+ * 戦略に応じて取り崩し順を変更
+ * iDeCo は60歳未満では取り崩し不可
  */
 function withdrawFromAccounts(
   accountStates: AccountState[],
   amount: number,
-  idecoYears: number
+  idecoYears: number,
+  age: number,
+  strategy: SimulationParams['withdrawalStrategy']
 ): { withdrawn: number, tax: number } {
   if (amount <= 0) return { withdrawn: 0, tax: 0 }
 
   let remaining = amount
   let totalTax = 0
 
-  const order: Account['type'][] = ['nisa', 'tokutei', 'ideco']
+  // 戦略に応じた取り崩し順
+  // nisa-first: NISA → 特定 → iDeCo（非課税資産から先に使う）
+  // savings-first: 特定 → NISA → iDeCo（預貯金を先に使い、投資は長く運用）
+  // tax-efficient: 特定 → iDeCo → NISA（課税口座から先に崩し、非課税のNISAを最後まで残す）
+  const orders: Record<SimulationParams['withdrawalStrategy'], Account['type'][]> = {
+    'nisa-first': ['nisa', 'tokutei', 'ideco'],
+    'savings-first': ['tokutei', 'nisa', 'ideco'],
+    'tax-efficient': ['tokutei', 'ideco', 'nisa']
+  }
+  const order = orders[strategy]
 
   for (const type of order) {
     if (remaining <= 0) break
+    if (type === 'ideco' && age < 60) continue
 
     const states = accountStates.filter(s => s.type === type && getAccountBalance(s) > 0)
     for (const state of states) {
@@ -276,7 +289,7 @@ export function runSimulation(params: SimulationParams): SimulationResult {
 
     let investmentIncome = 0
 
-    // === 口座の運用と積立 ===
+    // === 口座の運用益（積立前） ===
     for (let i = 0; i < accounts.length; i++) {
       const account = accounts[i]!
       const state = accountStates[i]!
@@ -291,9 +304,8 @@ export function runSimulation(params: SimulationParams): SimulationResult {
       // 旧つみたて NISA の運用益
       if (state.legacyBalance > 0) {
         if (state.legacyEndYear > 0 && year >= state.legacyEndYear) {
-          // 非課税期限切れ → 課税口座に移管（移管時の時価が取得原価）
           state.taxableBalance += state.legacyBalance
-          state.taxableContribution += state.legacyBalance // 移管時の時価 = 新たな取得原価
+          state.taxableContribution += state.legacyBalance
           state.legacyBalance = 0
           state.legacyContribution = 0
         } else {
@@ -303,7 +315,7 @@ export function runSimulation(params: SimulationParams): SimulationResult {
         }
       }
 
-      // 課税対象残高の運用益（旧つみたて NISA 期限切れ後）
+      // 課税対象残高の運用益
       if (state.taxableBalance > 0) {
         const taxableGain = state.taxableBalance * state.existingReturnRate
         state.taxableBalance += taxableGain
@@ -317,35 +329,11 @@ export function runSimulation(params: SimulationParams): SimulationResult {
         state.newBalance += newGain
         investmentIncome += newGain
       }
-
-      // 該当年齢でアクティブなファンドの積立
-      let contribution = calcAnnualContribution(account, age, retirementAge)
-
-      // NISA の生涯投資枠チェック
-      if (account.type === 'nisa' && contribution > 0) {
-        const remaining = Math.max(0, NISA_LIMITS.lifetime - nisaLifetimeContribution)
-        contribution = Math.min(contribution, remaining)
-        nisaLifetimeContribution += contribution
-      }
-
-      if (contribution > 0) {
-        state.newBalance += contribution
-        state.newContribution += contribution
-        cashBalance -= contribution
-
-        if (account.type === 'ideco') {
-          idecoYears++
-        }
-      }
     }
 
-    // === 収入（手取り） ===
+    // === 収入 ===
     const salaryIncome = getIncomeByAge(params, age)
-
-    // === 特別収入 ===
     const specialIncome = getSpecialIncome(params, age)
-
-    // === 年金収入 ===
     const pensionIncome = calcAnnualPension(
       pension.annualAmount,
       pension.startAge,
@@ -366,19 +354,58 @@ export function runSimulation(params: SimulationParams): SimulationResult {
     const netIncome = salaryIncome + pensionIncome + specialIncome - pensionTax
     const totalExpenseBeforeTax = livingExpense + specialExpense + loanPayment
 
-    let deficit = totalExpenseBeforeTax - netIncome
+    // 収入を預貯金に加算
+    cashBalance += netIncome
+    // 生活費等を預貯金から支出
+    cashBalance -= totalExpenseBeforeTax
+
+    // === 積立（預貯金の範囲内で実行） ===
+    let totalContribution = 0
+    for (let i = 0; i < accounts.length; i++) {
+      const account = accounts[i]!
+      const state = accountStates[i]!
+
+      let contribution = calcAnnualContribution(account, age, retirementAge)
+
+      // NISA の生涯投資枠チェック
+      if (account.type === 'nisa' && contribution > 0) {
+        const remaining = Math.max(0, NISA_LIMITS.lifetime - nisaLifetimeContribution)
+        contribution = Math.min(contribution, remaining)
+      }
+
+      // 預貯金が足りない場合は積立額を制限
+      if (contribution > 0) {
+        contribution = Math.min(contribution, Math.max(0, cashBalance))
+      }
+
+      if (contribution > 0) {
+        if (account.type === 'nisa') {
+          nisaLifetimeContribution += contribution
+        }
+        state.newBalance += contribution
+        state.newContribution += contribution
+        cashBalance -= contribution
+        totalContribution += contribution
+
+        if (account.type === 'ideco') {
+          idecoYears++
+        }
+      }
+    }
+
+    // === 赤字の場合、取り崩し ===
     let withdrawalTax = 0
 
-    if (deficit > 0) {
-      const result = withdrawFromAccounts(accountStates, deficit, idecoYears)
+    if (cashBalance < 0) {
+      const deficit = Math.abs(cashBalance)
+      cashBalance = 0
+      const strategy = params.withdrawalStrategy
+      const result = withdrawFromAccounts(accountStates, deficit, idecoYears, age, strategy)
       withdrawalTax += result.tax
-      deficit -= result.withdrawn
-
-      if (deficit > 0) {
-        cashBalance -= deficit
+      const unresolved = deficit - result.withdrawn
+      if (unresolved > 0) {
+        cashBalance -= unresolved
       }
-    } else {
-      cashBalance += (netIncome - totalExpenseBeforeTax)
     }
 
     const totalTax = pensionTax + withdrawalTax
@@ -407,6 +434,7 @@ export function runSimulation(params: SimulationParams): SimulationResult {
       livingExpense: Math.round(livingExpense),
       specialExpense: Math.round(specialExpense),
       loanPayment: Math.round(loanPayment),
+      investmentContribution: Math.round(totalContribution),
       taxAmount: Math.round(totalTax),
       totalExpense: Math.round(totalExpenseBeforeTax + totalTax),
       accountBalances,
