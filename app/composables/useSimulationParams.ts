@@ -4,6 +4,31 @@ import { DEFAULT_PARAMS } from '~/utils/constants'
 
 const PARAMS_KEY: InjectionKey<SimulationParams> = Symbol('simulation-params')
 
+const EXPENSE_BRACKETS = [
+  { maxAge: 44, monthlyExpense: 280_000 },
+  { maxAge: 54, monthlyExpense: 300_000 },
+  { maxAge: 64, monthlyExpense: 260_000 },
+  { maxAge: 74, monthlyExpense: 220_000 },
+  { maxAge: 84, monthlyExpense: 180_000 },
+  { maxAge: Infinity, monthlyExpense: 150_000 }
+]
+
+function generateDefaultExpenses(currentAge: number, lifeExpectancy: number) {
+  const expenses: { fromAge: number, toAge: number, monthlyExpense: number }[] = []
+  let age = currentAge
+  for (const bracket of EXPENSE_BRACKETS) {
+    if (age > lifeExpectancy) break
+    if (age > bracket.maxAge) continue
+    expenses.push({
+      fromAge: age,
+      toAge: Math.min(bracket.maxAge, lifeExpectancy),
+      monthlyExpense: bracket.monthlyExpense
+    })
+    age = bracket.maxAge + 1
+  }
+  return expenses
+}
+
 function createDefaultParams(): SimulationParams {
   return {
     basicInfo: { ...DEFAULT_PARAMS.basicInfo },
@@ -34,14 +59,7 @@ function createDefaultParams(): SimulationParams {
       { fromAge: 45, toAge: 54, annualIncome: 6_500_000 },
       { fromAge: 55, toAge: 64, annualIncome: 5_500_000 }
     ],
-    expensesByAge: [
-      { fromAge: 30, toAge: 44, monthlyExpense: 280_000 },
-      { fromAge: 45, toAge: 54, monthlyExpense: 300_000 },
-      { fromAge: 55, toAge: 64, monthlyExpense: 260_000 },
-      { fromAge: 65, toAge: 74, monthlyExpense: 220_000 },
-      { fromAge: 75, toAge: 84, monthlyExpense: 180_000 },
-      { fromAge: 85, toAge: 90, monthlyExpense: 150_000 }
-    ],
+    expensesByAge: generateDefaultExpenses(DEFAULT_PARAMS.basicInfo.currentAge, DEFAULT_PARAMS.basicInfo.lifeExpectancy),
     specialExpenses: [],
     specialIncomes: [],
     loans: [],
