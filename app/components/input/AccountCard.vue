@@ -167,9 +167,6 @@ const contributionHint = computed(() => {
             </span>
           </template>
           <InputMoneyInput v-model="account.currentContribution" size="sm" />
-          <template v-if="isNisa" #hint>
-            生涯投資枠の残り: {{ (remainingLifetime / 10000).toLocaleString() }}万円
-          </template>
         </UFormField>
         <UFormField size="sm">
           <template #label>
@@ -180,6 +177,24 @@ const contributionHint = computed(() => {
           </template>
           <InputMoneyInput v-model="account.currentBalance" size="sm" />
         </UFormField>
+      </div>
+
+      <!-- NISA 生涯投資枠バー -->
+      <div v-if="isNisa" class="space-y-1">
+        <div class="flex items-center justify-between text-xs text-gray-500">
+          <span>生涯投資枠</span>
+          <span>{{ Math.round(nisaUsedAll / 10000).toLocaleString() }}万円 / 1,800万円</span>
+        </div>
+        <div class="w-full h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+          <div
+            class="h-full rounded-full transition-all duration-300"
+            :class="nisaUsedAll >= NISA_LIMITS.lifetime ? 'bg-red-500' : 'bg-blue-500'"
+            :style="{ width: `${Math.min(100, (nisaUsedAll / NISA_LIMITS.lifetime) * 100)}%` }"
+          />
+        </div>
+        <div class="text-xs text-right" :class="remainingLifetime > 0 ? 'text-gray-400' : 'text-red-500'">
+          残り: {{ Math.round(remainingLifetime / 10000).toLocaleString() }}万円
+        </div>
       </div>
 
       <USeparator />
