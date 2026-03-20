@@ -24,6 +24,13 @@ const slotColor = computed(() => {
 
 const defaultStartAge = computed(() => params.basicInfo.currentAge)
 const defaultEndAge = computed(() => params.basicInfo.retirementAge)
+
+// startAge が currentAge 未満の場合は currentAge に補正
+watch(() => params.basicInfo.currentAge, (newAge) => {
+  if (props.fund.startAge !== undefined && props.fund.startAge < newAge) {
+    props.fund.startAge = newAge
+  }
+})
 </script>
 
 <template>

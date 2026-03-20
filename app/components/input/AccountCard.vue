@@ -210,8 +210,10 @@ const contributionHint = computed(() => {
     </template>
 
     <div class="space-y-4">
-      <!-- 現在の残高 -->
-      <div class="grid grid-cols-3 gap-3">
+      <!-- 現在まで -->
+      <div>
+        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">現在まで（累計投資）</h4>
+        <div class="grid grid-cols-3 gap-3">
         <UFormField size="sm">
           <template #label>
             <span class="flex items-center gap-1">
@@ -298,7 +300,7 @@ const contributionHint = computed(() => {
         </div>
       </div>
 
-      <USeparator />
+      </div>
 
       <!-- NISA 上限警告 -->
       <div v-if="isNisa" class="space-y-1">
@@ -324,11 +326,13 @@ const contributionHint = computed(() => {
         </div>
       </div>
 
-      <!-- ファンド一覧 -->
+      <USeparator />
+
+      <!-- 現在から（積立設定） -->
       <div>
-        <h4 class="text-xs font-medium text-gray-500 mb-2">
-          積立設定
-          <span class="text-gray-400">（月額合計: {{ totalMonthly.toLocaleString() }}円）</span>
+        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+          現在から（積立設定）
+          <span class="text-gray-400 normal-case">— 月額合計: {{ totalMonthly.toLocaleString() }}円</span>
         </h4>
 
         <div class="space-y-3">
