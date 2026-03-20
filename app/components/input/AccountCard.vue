@@ -27,11 +27,16 @@ const typeColors: Record<string, string> = {
 const isNisa = computed(() => props.account.type === 'nisa')
 
 function addFund(nisaSlot?: NisaSlot) {
+  const defaultEndAge = (props.account.type === 'nisa' || props.account.type === 'ideco')
+    ? params.basicInfo.retirementAge
+    : undefined
   props.account.funds.push({
     id: crypto.randomUUID(),
     name: '',
     monthlyContribution: 0,
     expectedReturn: 5.0,
+    startAge: params.basicInfo.currentAge,
+    endAge: defaultEndAge,
     ...(nisaSlot ? { nisaSlot } : {})
   })
 }
