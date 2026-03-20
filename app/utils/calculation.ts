@@ -24,21 +24,47 @@ interface AccountState {
  * 口座の初期状態を構築（現在の残高を反映）
  */
 function initAccountStates(accounts: Account[]): AccountState[] {
-  return accounts.map(account => ({
-    id: account.id,
-    type: account.type,
-    existingBalance: account.currentBalance,
-    existingContribution: account.currentContribution,
-    existingReturnRate: account.existingReturnRate / 100,
-    newBalance: 0,
-    newContribution: 0,
-    legacyBalance: account.legacyTsumitateBalance ?? 0,
-    legacyContribution: account.legacyTsumitateContribution ?? 0,
-    legacyReturnRate: (account.legacyTsumitateReturnRate ?? 0) / 100,
-    legacyEndYear: account.legacyTsumitateEndYear ?? 0,
-    taxableBalance: 0,
-    taxableContribution: 0
-  }))
+  return accounts.map((account) => {
+    let existingBalance: number
+    let existingContribution: number
+    let existingReturnRate: number
+
+    if (account.type === 'nisa') {
+      // NISA: つみたて枠 + 成長枠を合算
+      const tb = account.nisaTsumitateBalance ?? 0
+      const tc = account.nisaTsumitateContribution ?? 0
+      const tr = account.nisaTsumitateReturnRate ?? 0
+      const gb = account.nisaGrowthBalance ?? 0
+      const gc = account.nisaGrowthContribution ?? 0
+      const gr = account.nisaGrowthReturnRate ?? 0
+      existingBalance = tb + gb
+      existingContribution = tc + gc
+      // 加重平均利回り（残高ベース）
+      existingReturnRate = existingBalance > 0
+        ? ((tb * tr + gb * gr) / existingBalance) / 100
+        : (account.existingReturnRate ?? 5) / 100
+    } else {
+      existingBalance = account.currentBalance
+      existingContribution = account.currentContribution
+      existingReturnRate = account.existingReturnRate / 100
+    }
+
+    return {
+      id: account.id,
+      type: account.type,
+      existingBalance,
+      existingContribution,
+      existingReturnRate,
+      newBalance: 0,
+      newContribution: 0,
+      legacyBalance: account.legacyTsumitateBalance ?? 0,
+      legacyContribution: account.legacyTsumitateContribution ?? 0,
+      legacyReturnRate: (account.legacyTsumitateReturnRate ?? 0) / 100,
+      legacyEndYear: account.legacyTsumitateEndYear ?? 0,
+      taxableBalance: 0,
+      taxableContribution: 0
+    }
+  })
 }
 
 /**
@@ -239,9 +265,10 @@ export function runSimulation(params: SimulationParams): SimulationResult {
   let idecoYears = 0
 
   // NISA の生涯投資枠の累計拠出額を追跡
+  // NISA 生涯投資枠: 新 NISA つみたて + 成長の元本合計（旧 NISA は含まない）
   let nisaLifetimeContribution = accounts
     .filter(a => a.type === 'nisa')
-    .reduce((sum, a) => sum + a.currentContribution, 0)
+    .reduce((sum, a) => sum + (a.nisaTsumitateContribution ?? 0) + (a.nisaGrowthContribution ?? 0), 0)
 
   for (let age = currentAge; age <= lifeExpectancy; age++) {
     const yearsFromStart = age - currentAge

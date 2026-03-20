@@ -7,11 +7,24 @@ function calcGainRate(balance: number, cost: number): string | null {
   return `${rate >= 0 ? '+' : ''}${rate.toFixed(1)}%`
 }
 
-// 口座別の集計（旧つみたて NISA を含む）
+function getAccountTotalBalance(a: typeof params.accounts[number]): number {
+  if (a.type === 'nisa') {
+    return (a.nisaTsumitateBalance ?? 0) + (a.nisaGrowthBalance ?? 0) + (a.legacyTsumitateBalance ?? 0)
+  }
+  return a.currentBalance
+}
+
+function getAccountTotalContribution(a: typeof params.accounts[number]): number {
+  if (a.type === 'nisa') {
+    return (a.nisaTsumitateContribution ?? 0) + (a.nisaGrowthContribution ?? 0) + (a.legacyTsumitateContribution ?? 0)
+  }
+  return a.currentContribution
+}
+
 const accountSummaries = computed(() => {
   return params.accounts.map(a => {
-    const balance = a.currentBalance + (a.legacyTsumitateBalance ?? 0)
-    const contribution = a.currentContribution + (a.legacyTsumitateContribution ?? 0)
+    const balance = getAccountTotalBalance(a)
+    const contribution = getAccountTotalContribution(a)
     return {
       id: a.id,
       label: a.label,
@@ -25,8 +38,7 @@ const accountSummaries = computed(() => {
 })
 
 const totalAssets = computed(() => {
-  const investmentTotal = params.accounts.reduce((sum, a) =>
-    sum + a.currentBalance + (a.legacyTsumitateBalance ?? 0), 0)
+  const investmentTotal = params.accounts.reduce((sum, a) => sum + getAccountTotalBalance(a), 0)
   return params.savings + investmentTotal
 })
 

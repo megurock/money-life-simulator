@@ -51,13 +51,23 @@ const totalMonthly = computed(() =>
 )
 
 // 損益
-const totalBalance = computed(() =>
-  props.account.currentBalance + (props.account.legacyTsumitateBalance ?? 0)
-)
+const totalBalance = computed(() => {
+  if (isNisa.value) {
+    return (props.account.nisaTsumitateBalance ?? 0)
+      + (props.account.nisaGrowthBalance ?? 0)
+      + (props.account.legacyTsumitateBalance ?? 0)
+  }
+  return props.account.currentBalance
+})
 
-const totalContribution = computed(() =>
-  props.account.currentContribution + (props.account.legacyTsumitateContribution ?? 0)
-)
+const totalContribution = computed(() => {
+  if (isNisa.value) {
+    return (props.account.nisaTsumitateContribution ?? 0)
+      + (props.account.nisaGrowthContribution ?? 0)
+      + (props.account.legacyTsumitateContribution ?? 0)
+  }
+  return props.account.currentContribution
+})
 
 const gain = computed(() => totalBalance.value - totalContribution.value)
 
@@ -94,10 +104,11 @@ const totalAnnualContribution = computed(() =>
 )
 
 // 生涯投資枠の残り（全 NISA 口座の合計）
+// 新 NISA の生涯投資枠消費量（旧 NISA は含まない）
 const nisaUsedAll = computed(() =>
   params.accounts
     .filter(a => a.type === 'nisa')
-    .reduce((sum, a) => sum + (a.currentContribution ?? 0), 0)
+    .reduce((sum, a) => sum + (a.nisaTsumitateContribution ?? 0) + (a.nisaGrowthContribution ?? 0), 0)
 )
 const remainingLifetime = computed(() =>
   Math.max(0, NISA_LIMITS.lifetime - nisaUsedAll.value)
@@ -222,92 +233,109 @@ const contributionHint = computed(() => {
 
     <div class="space-y-4">
       <!-- 現在まで -->
-      <div>
-        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">現在まで（累計投資）</h4>
-        <div class="grid grid-cols-3 gap-3">
-        <UFormField size="sm">
-          <template #label>
-            <span class="flex items-center gap-1">
-              {{ contributionLabel }}
-              <InputHelpTip :text="contributionHint" />
-            </span>
-          </template>
-          <InputMoneyInput v-model="account.currentContribution" size="sm" />
-        </UFormField>
-        <UFormField size="sm">
-          <template #label>
-            <span class="flex items-center gap-1">
-              現在の評価額（時価）
-              <InputHelpTip text="証券口座で確認できる現在の評価額です。" />
-            </span>
-          </template>
-          <InputMoneyInput v-model="account.currentBalance" size="sm" />
-        </UFormField>
-        <UFormField size="sm">
-          <template #label>
-            <span class="flex items-center gap-1">
-              既存資産の利回り
-              <InputHelpTip text="現在保有している資産に適用される年間の期待利回りです。新規積立のファンドとは独立して運用されます。" />
-            </span>
-          </template>
-          <UInput
-            v-model.number="account.existingReturnRate"
-            type="number"
-            size="sm"
-            :min="0"
-            :max="30"
-            :step="0.1"
-          >
-            <template #trailing>
-              <span class="text-xs text-gray-500">%</span>
-            </template>
-          </UInput>
-        </UFormField>
-      </div>
+      <div class="space-y-3">
+        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">現在まで（累計投資）</h4>
 
-      <!-- 旧つみたて NISA -->
-      <div v-if="isNisa" class="space-y-2">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-medium text-purple-600 dark:text-purple-400">旧つみたて NISA</span>
-          <InputHelpTip text="2018〜2023年に旧つみたて NISA で購入した分です。非課税期間は購入年から20年間です。期限が切れると課税口座に移管されます。" />
-        </div>
-        <div class="grid grid-cols-4 gap-3">
-          <UFormField label="元本" size="sm">
-            <InputMoneyInput v-model="account.legacyTsumitateContribution" size="sm" />
-          </UFormField>
-          <UFormField label="評価額" size="sm">
-            <InputMoneyInput v-model="account.legacyTsumitateBalance" size="sm" />
-          </UFormField>
-          <UFormField label="利回り" size="sm">
-            <UInput
-              v-model.number="account.legacyTsumitateReturnRate"
-              type="number"
-              size="sm"
-              :min="0"
-              :max="30"
-              :step="0.1"
-            >
-              <template #trailing>
-                <span class="text-xs text-gray-500">%</span>
-              </template>
-            </UInput>
+        <!-- NISA: 枠別入力 -->
+        <template v-if="isNisa">
+          <!-- 新 NISA つみたて投資枠 -->
+          <div class="space-y-1">
+            <span class="text-xs font-medium text-blue-600 dark:text-blue-400">新 NISA つみたて投資枠</span>
+            <div class="grid grid-cols-3 gap-3">
+              <UFormField label="元本" size="sm">
+                <InputMoneyInput v-model="account.nisaTsumitateContribution" size="sm" />
+              </UFormField>
+              <UFormField label="評価額" size="sm">
+                <InputMoneyInput v-model="account.nisaTsumitateBalance" size="sm" />
+              </UFormField>
+              <UFormField label="利回り" size="sm">
+                <UInput v-model.number="account.nisaTsumitateReturnRate" type="number" size="sm" :min="0" :max="30" :step="0.1">
+                  <template #trailing><span class="text-xs text-gray-500">%</span></template>
+                </UInput>
+              </UFormField>
+            </div>
+          </div>
+
+          <!-- 新 NISA 成長投資枠 -->
+          <div class="space-y-1">
+            <span class="text-xs font-medium text-green-600 dark:text-green-400">新 NISA 成長投資枠</span>
+            <div class="grid grid-cols-3 gap-3">
+              <UFormField label="元本" size="sm">
+                <InputMoneyInput v-model="account.nisaGrowthContribution" size="sm" />
+              </UFormField>
+              <UFormField label="評価額" size="sm">
+                <InputMoneyInput v-model="account.nisaGrowthBalance" size="sm" />
+              </UFormField>
+              <UFormField label="利回り" size="sm">
+                <UInput v-model.number="account.nisaGrowthReturnRate" type="number" size="sm" :min="0" :max="30" :step="0.1">
+                  <template #trailing><span class="text-xs text-gray-500">%</span></template>
+                </UInput>
+              </UFormField>
+            </div>
+          </div>
+
+          <!-- 旧つみたて NISA -->
+          <div class="space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-purple-600 dark:text-purple-400">旧つみたて NISA</span>
+              <InputHelpTip text="2018〜2023年に旧つみたて NISA で購入した分です。非課税期間は購入年から20年間。期限切れ後は課税口座に移管され、以降の含み益に20.315%が課税されます。" />
+            </div>
+            <div class="grid grid-cols-4 gap-3">
+              <UFormField label="元本" size="sm">
+                <InputMoneyInput v-model="account.legacyTsumitateContribution" size="sm" />
+              </UFormField>
+              <UFormField label="評価額" size="sm">
+                <InputMoneyInput v-model="account.legacyTsumitateBalance" size="sm" />
+              </UFormField>
+              <UFormField label="利回り" size="sm">
+                <UInput v-model.number="account.legacyTsumitateReturnRate" type="number" size="sm" :min="0" :max="30" :step="0.1">
+                  <template #trailing><span class="text-xs text-gray-500">%</span></template>
+                </UInput>
+              </UFormField>
+              <UFormField size="sm">
+                <template #label>
+                  <span class="flex items-center gap-1">
+                    非課税期限
+                    <InputHelpTip text="非課税期間が終了する年（西暦）です。例: 2018年購入分は2037年、2023年購入分は2042年。" />
+                  </span>
+                </template>
+                <UInput v-model.number="account.legacyTsumitateEndYear" type="number" size="sm" placeholder="2042">
+                  <template #trailing><span class="text-xs text-gray-500">年</span></template>
+                </UInput>
+              </UFormField>
+            </div>
+          </div>
+        </template>
+
+        <!-- iDeCo / 特定口座: 従来の入力 -->
+        <div v-else class="grid grid-cols-3 gap-3">
+          <UFormField size="sm">
+            <template #label>
+              <span class="flex items-center gap-1">
+                {{ contributionLabel }}
+                <InputHelpTip :text="contributionHint" />
+              </span>
+            </template>
+            <InputMoneyInput v-model="account.currentContribution" size="sm" />
           </UFormField>
           <UFormField size="sm">
             <template #label>
               <span class="flex items-center gap-1">
-                非課税期限
-                <InputHelpTip text="非課税期間が終了する年（西暦）です。例: 2018年購入分は2037年、2023年購入分は2042年。" />
+                評価額（時価）
+                <InputHelpTip text="証券口座で確認できる現在の評価額です。" />
               </span>
             </template>
-            <UInput
-              v-model.number="account.legacyTsumitateEndYear"
-              type="number"
-              size="sm"
-              placeholder="2042"
-            >
-              <template #trailing>
-                <span class="text-xs text-gray-500">年</span>
-              </template>
+            <InputMoneyInput v-model="account.currentBalance" size="sm" />
+          </UFormField>
+          <UFormField size="sm">
+            <template #label>
+              <span class="flex items-center gap-1">
+                既存利回り
+                <InputHelpTip text="現在保有している資産に適用される年間の期待利回りです。" />
+              </span>
+            </template>
+            <UInput v-model.number="account.existingReturnRate" type="number" size="sm" :min="0" :max="30" :step="0.1">
+              <template #trailing><span class="text-xs text-gray-500">%</span></template>
             </UInput>
           </UFormField>
         </div>

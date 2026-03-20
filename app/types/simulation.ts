@@ -17,14 +17,23 @@ export interface Account {
   type: AccountType
   label: string
   funds: Fund[]
+  // iDeCo/特定口座 用
   currentBalance: number       // 現在の評価額（時価）
-  currentContribution: number  // 累計投資額（元本）— NISA: 生涯枠消費量、iDeCo: 累計掛金、特定: 取得原価
+  currentContribution: number  // 累計投資額（元本）
   existingReturnRate: number   // 既存資産の期待利回り（年率 %）
-  // 旧つみたて NISA（NISA 口座のみ）
-  legacyTsumitateBalance?: number      // 旧つみたて NISA 評価額
-  legacyTsumitateContribution?: number // 旧つみたて NISA 元本
-  legacyTsumitateReturnRate?: number   // 旧つみたて NISA 期待利回り（年率 %）
-  legacyTsumitateEndYear?: number      // 旧つみたて NISA 非課税期限（年）
+  // NISA 口座: 新 NISA つみたて枠
+  nisaTsumitateBalance?: number      // 評価額（時価）
+  nisaTsumitateContribution?: number // 累計投資額（元本）— 生涯投資枠の消費量
+  nisaTsumitateReturnRate?: number   // 期待利回り（年率 %）
+  // NISA 口座: 新 NISA 成長枠
+  nisaGrowthBalance?: number         // 評価額（時価）
+  nisaGrowthContribution?: number    // 累計投資額（元本）— 生涯投資枠の消費量
+  nisaGrowthReturnRate?: number      // 期待利回り（年率 %）
+  // NISA 口座: 旧つみたて NISA
+  legacyTsumitateBalance?: number      // 評価額
+  legacyTsumitateContribution?: number // 元本
+  legacyTsumitateReturnRate?: number   // 期待利回り（年率 %）
+  legacyTsumitateEndYear?: number      // 非課税期限（年）
 }
 
 export interface PensionConfig {
