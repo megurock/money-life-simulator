@@ -43,8 +43,9 @@ function resetAll() {
         <template #input>
           <InputBasicInfoForm />
           <InputCurrentAssetsForm />
-          <InputIncomeSection />
+          <InputSavingsForm />
           <InputAccountSection />
+          <InputIncomeSection />
           <InputPensionForm />
           <InputLoanSection />
           <InputExpenseSection />

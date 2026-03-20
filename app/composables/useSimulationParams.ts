@@ -7,26 +7,14 @@ const PARAMS_KEY: InjectionKey<SimulationParams> = Symbol('simulation-params')
 function createDefaultParams(): SimulationParams {
   return {
     basicInfo: { ...DEFAULT_PARAMS.basicInfo },
-    currentAssets: {
-      savings: DEFAULT_PARAMS.currentSavings,
-      nisaTsumitateContribution: 0,
-      nisaTsumitateBalance: 0,
-      nisaTsumitateExpectedReturn: 5.0,
-      nisaGrowthContribution: 0,
-      nisaGrowthBalance: 0,
-      nisaGrowthExpectedReturn: 5.0,
-      idecoContribution: 0,
-      idecoBalance: 0,
-      idecoExpectedReturn: 4.0,
-      tokuteiBalance: 0,
-      tokuteiCost: 0,
-      tokuteiExpectedReturn: 5.0
-    },
+    savings: DEFAULT_PARAMS.currentSavings,
     accounts: [
       {
         id: crypto.randomUUID(),
         type: 'nisa',
         label: 'NISA',
+        currentBalance: 0,
+        currentContribution: 0,
         funds: [
           {
             id: crypto.randomUUID(),

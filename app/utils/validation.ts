@@ -21,7 +21,7 @@ export function validateParams(params: SimulationParams): ValidationError[] {
     errors.push({ field: 'lifeExpectancy', message: '想定寿命は引退年齢以上にしてください' })
   }
 
-  if (params.currentAssets.savings < 0) {
+  if (params.savings < 0) {
     errors.push({ field: 'savings', message: '預貯金は0以上にしてください' })
   }
 

@@ -29,9 +29,6 @@ export function clearLocalStorage(): void {
   localStorage.removeItem(STORAGE_KEY)
 }
 
-/**
- * params を watch して、変更時に debounce 付きで localStorage に保存する
- */
 export function useAutoSave(params: WatchSource<SimulationParams>): void {
   watch(
     params,
@@ -45,18 +42,14 @@ export function useAutoSave(params: WatchSource<SimulationParams>): void {
   )
 }
 
-/**
- * localStorage から復元し、params にマージする
- */
 export function restoreParams(params: SimulationParams): void {
   const saved = loadFromLocalStorage()
   if (!saved) return
 
   const defaults = createDefaultParams()
 
-  // 保存データをマージ（不足フィールドはデフォルトで補完）
   params.basicInfo = { ...defaults.basicInfo, ...saved.basicInfo }
-  params.currentAssets = { ...defaults.currentAssets, ...saved.currentAssets }
+  params.savings = saved.savings ?? defaults.savings
   params.accounts = saved.accounts?.length ? saved.accounts : defaults.accounts
   params.pension = { ...defaults.pension, ...saved.pension }
   params.incomesByAge = saved.incomesByAge?.length ? saved.incomesByAge : defaults.incomesByAge
