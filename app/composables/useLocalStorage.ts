@@ -2,7 +2,7 @@ import { watch, type WatchSource } from 'vue'
 import type { SimulationParams } from '~/types/simulation'
 import { createDefaultParams } from './useSimulationParams'
 
-const STORAGE_KEY = 'retirement-simulator-params'
+const STORAGE_KEY = 'money-life-simulator-params'
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 export function saveToLocalStorage(params: SimulationParams): void {

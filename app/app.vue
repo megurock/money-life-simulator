@@ -11,8 +11,8 @@ useHead({
   }
 })
 
-const title = '老後資金シミュレーター'
-const description = '老後に向けた資金計画を可視化するシミュレーターです。NISA・iDeCo・年金・支出を考慮した資産推移を確認できます。'
+const title = 'お金と暮らしのシミュレーター'
+const description = 'お金の使いどきを見つけて、豊かな人生を描こう。収入・支出・資産の流れを可視化し、NISA・iDeCo・年金を考慮した資産推移を確認できます。'
 
 useSeoMeta({
   title,

@@ -24,7 +24,7 @@ function exportJson() {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `retirement-simulator-${new Date().toISOString().slice(0, 10)}.json`
+  a.download = `money-life-simulator-${new Date().toISOString().slice(0, 10)}.json`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -60,9 +60,12 @@ function onFileSelected(event: Event) {
   <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
     <header class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
       <div class="max-w-screen-2xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <UIcon name="i-lucide-calculator" class="text-2xl text-primary" />
-          <h1 class="text-xl font-bold">老後資金シミュレーター</h1>
+        <div>
+          <div class="flex items-center gap-3">
+            <UIcon name="i-lucide-calculator" class="text-2xl text-primary" />
+            <h1 class="text-xl font-bold">お金と暮らしのシミュレーター</h1>
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-9">お金の使いどきを見つけて、豊かな人生を描こう</p>
         </div>
         <div class="flex items-center gap-2">
           <UButton
