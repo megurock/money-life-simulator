@@ -27,15 +27,28 @@ function formatMoney(value: number): string {
 
 const hasLoans = computed(() => params.loans.length > 0)
 
-// 特別収入/支出がある年齢のセット
+// 特別収入/支出/バケットイベントがある年齢のセット
 const specialAges = computed(() => {
   const ages = new Set<number>()
   for (const e of params.specialExpenses) ages.add(e.age)
   for (const i of params.specialIncomes) ages.add(i.age)
+  for (const bucket of params.timeBuckets ?? []) {
+    for (const event of bucket.events) {
+      if (event.recurrence === 'once') {
+        ages.add(event.age)
+      } else {
+        for (let a = event.age; a <= bucket.toAge; a++) {
+          if (event.recurrence === 'yearly' || (a - event.age) % 2 === 0) {
+            ages.add(a)
+          }
+        }
+      }
+    }
+  }
   return ages
 })
 
-// 特別収入/支出の内容を取得
+// 特別収入/支出/バケットイベントの内容を取得
 function getSpecialEvents(age: number): string[] {
   const events: string[] = []
   for (const e of params.specialExpenses) {
@@ -43,6 +56,18 @@ function getSpecialEvents(age: number): string[] {
   }
   for (const i of params.specialIncomes) {
     if (i.age === age) events.push(`収入: ${i.description || '特別収入'}`)
+  }
+  for (const bucket of params.timeBuckets ?? []) {
+    for (const event of bucket.events) {
+      const matches = event.recurrence === 'once'
+        ? event.age === age
+        : event.recurrence === 'yearly'
+          ? age >= event.age && age <= bucket.toAge
+          : age >= event.age && age <= bucket.toAge && (age - event.age) % 2 === 0
+      if (matches) {
+        events.push(`思い出: ${event.description || 'イベント'}`)
+      }
+    }
   }
   return events
 }
@@ -130,7 +155,8 @@ const filteredResults = computed(() => {
             class="border-b border-gray-100 dark:border-gray-800"
             :class="{
               'bg-red-50 dark:bg-red-900/20': result.isDepleted,
-              'bg-amber-50 dark:bg-amber-900/10': !result.isDepleted && specialAges.has(result.age)
+              'bg-rose-50/50 dark:bg-rose-900/10': !result.isDepleted && result.totalExpense > result.totalIncome,
+              'bg-amber-50 dark:bg-amber-900/10': !result.isDepleted && result.totalExpense <= result.totalIncome && specialAges.has(result.age)
             }"
           >
             <td class="py-2 px-3 font-medium">

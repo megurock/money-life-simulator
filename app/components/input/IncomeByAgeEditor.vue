@@ -3,25 +3,17 @@ const params = useSimulationParams()
 
 function recalcToAges() {
   const entries = params.incomesByAge
-  for (let i = 0; i < entries.length; i++) {
-    if (i < entries.length - 1) {
-      entries[i].toAge = entries[i + 1].fromAge - 1
-    } else {
-      // 引退年齢以降のエントリは想定寿命まで、それ以前は引退年齢まで
-      entries[i].toAge = entries[i].fromAge >= params.basicInfo.retirementAge
-        ? params.basicInfo.lifeExpectancy
-        : params.basicInfo.retirementAge - 1
-    }
+  for (let i = 0; i < entries.length - 1; i++) {
+    entries[i].toAge = entries[i + 1].fromAge - 1
   }
 }
 
 function addEntry() {
   const lastEntry = params.incomesByAge[params.incomesByAge.length - 1]
   const fromAge = lastEntry ? lastEntry.toAge + 1 : params.basicInfo.currentAge
-  const isPostRetirement = fromAge >= params.basicInfo.retirementAge
   params.incomesByAge.push({
     fromAge,
-    toAge: isPostRetirement ? params.basicInfo.lifeExpectancy : params.basicInfo.retirementAge - 1,
+    toAge: Math.max(fromAge, params.basicInfo.retirementAge - 1),
     annualIncome: 0
   })
   recalcToAges()
@@ -36,9 +28,12 @@ function onFromAgeChange() {
   recalcToAges()
 }
 
-watch([() => params.basicInfo.retirementAge, () => params.basicInfo.lifeExpectancy], () => {
+function onToAgeChange(index: number) {
+  // 最後のエントリの toAge が変更されたら、次の期間追加時の fromAge に影響する
+  // 中間エントリの toAge は自動計算されるため変更不要
+  if (index === params.incomesByAge.length - 1) return
   recalcToAges()
-})
+}
 </script>
 
 <template>
@@ -48,8 +43,8 @@ watch([() => params.basicInfo.retirementAge, () => params.basicInfo.lifeExpectan
       :key="index"
       class="grid grid-cols-12 gap-2 items-end"
     >
-      <div class="col-span-4">
-        <UFormField :label="index === 0 ? '年齢' : ''" size="sm">
+      <div class="col-span-2">
+        <UFormField :label="index === 0 ? '開始' : ''" size="sm">
           <UInput
             v-model.number="entry.fromAge"
             type="number"
@@ -58,7 +53,23 @@ watch([() => params.basicInfo.retirementAge, () => params.basicInfo.lifeExpectan
             @update:model-value="onFromAgeChange"
           >
             <template #trailing>
-              <span class="text-xs text-gray-500">歳から</span>
+              <span class="text-xs text-gray-500">歳</span>
+            </template>
+          </UInput>
+        </UFormField>
+      </div>
+      <div class="col-span-2">
+        <UFormField :label="index === 0 ? '終了' : ''" size="sm">
+          <UInput
+            v-model.number="entry.toAge"
+            type="number"
+            size="sm"
+            :min="entry.fromAge"
+            :disabled="index < params.incomesByAge.length - 1"
+            @update:model-value="onToAgeChange(index)"
+          >
+            <template #trailing>
+              <span class="text-xs text-gray-500">歳</span>
             </template>
           </UInput>
         </UFormField>
@@ -83,7 +94,7 @@ watch([() => params.basicInfo.retirementAge, () => params.basicInfo.lifeExpectan
     </div>
 
     <p v-if="params.incomesByAge.length > 0" class="text-xs text-gray-400">
-      ※ 引退（{{ params.basicInfo.retirementAge }}歳）以降は収入0として計算されます。引退後に収入がある場合は期間を追加してください
+      ※ 設定された期間外は収入0として計算されます
     </p>
 
     <UButton

@@ -133,6 +133,27 @@ function getSpecialExpense(params: SimulationParams, age: number): number {
 }
 
 /**
+ * タイムバケットのイベントによる該当年齢の支出合計を取得
+ */
+function getBucketExpense(params: SimulationParams, age: number): number {
+  let total = 0
+  for (const bucket of params.timeBuckets ?? []) {
+    for (const event of bucket.events) {
+      if (event.recurrence === 'once') {
+        if (event.age === age) total += event.amount
+      } else if (event.recurrence === 'yearly') {
+        if (age >= event.age && age <= bucket.toAge) total += event.amount
+      } else if (event.recurrence === 'biennial') {
+        if (age >= event.age && age <= bucket.toAge && (age - event.age) % 2 === 0) {
+          total += event.amount
+        }
+      }
+    }
+  }
+  return total
+}
+
+/**
  * 該当年齢のローン返済額合計を取得
  */
 function getLoanPayment(params: SimulationParams, age: number): number {
@@ -343,7 +364,7 @@ export function runSimulation(params: SimulationParams): SimulationResult {
 
     // === 支出 ===
     const livingExpense = getLivingExpense(params, age, yearsFromStart)
-    const specialExpense = getSpecialExpense(params, age)
+    const specialExpense = getSpecialExpense(params, age) + getBucketExpense(params, age)
     const loanPayment = getLoanPayment(params, age)
 
     // === 年金の税金 ===

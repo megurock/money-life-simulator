@@ -30,6 +30,7 @@ const strategies: { value: WithdrawalStrategy, label: string, description: strin
         <h3 class="font-semibold">取り崩し戦略</h3>
         <InputHelpTip text="支出が収入を上回った場合に、どの資産から先に取り崩すかを選択します。\niDeCo は60歳未満では取り崩しできません。" />
       </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">支出が収入を上回ったとき、どの資産から取り崩すかを選択します</p>
     </template>
 
     <div class="space-y-2">

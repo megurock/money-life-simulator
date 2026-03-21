@@ -76,4 +76,5 @@ export function restoreParams(params: SimulationParams): void {
   }))
   params.inflationRate = saved.inflationRate ?? defaults.inflationRate
   params.withdrawalStrategy = saved.withdrawalStrategy ?? defaults.withdrawalStrategy
+  params.timeBuckets = saved.timeBuckets ?? defaults.timeBuckets
 }

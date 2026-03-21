@@ -20,10 +20,13 @@ function removeLoan(id: string) {
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <UIcon name="i-lucide-house" />
-          <h3 class="font-semibold">ローン</h3>
-          <InputHelpTip text="住宅ローン、車のローン、教育ローンなどを設定します。\nボーナス払いを含む年間の返済総額を入力してください。" />
+        <div>
+          <div class="flex items-center gap-2">
+            <UIcon name="i-lucide-house" />
+            <h3 class="font-semibold">ローン</h3>
+            <InputHelpTip text="住宅ローン、車のローン、教育ローンなどを設定します。\nボーナス払いを含む年間の返済総額を入力してください。" />
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">住宅・車・教育ローンなどの年間返済額を設定します</p>
         </div>
         <UButton
           icon="i-lucide-plus"

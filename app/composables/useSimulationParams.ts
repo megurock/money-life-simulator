@@ -44,7 +44,8 @@ function createDefaultParams(): SimulationParams {
     specialIncomes: [],
     loans: [],
     inflationRate: DEFAULT_PARAMS.inflationRate,
-    withdrawalStrategy: 'savings-first'
+    withdrawalStrategy: 'savings-first',
+    timeBuckets: []
   }
 }
 

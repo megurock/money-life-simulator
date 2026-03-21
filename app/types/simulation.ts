@@ -75,6 +75,22 @@ export interface Loan {
   endAge: number
 }
 
+export interface BucketEvent {
+  id: string
+  description: string
+  amount: number           // 1回あたりの金額
+  age: number              // 実行年齢（once）/ 開始年齢（yearly/biennial）
+  recurrence: 'once' | 'yearly' | 'biennial'
+}
+
+export interface TimeBucket {
+  id: string
+  fromAge: number
+  toAge: number
+  title: string
+  events: BucketEvent[]
+}
+
 export type WithdrawalStrategy = 'nisa-first' | 'savings-first' | 'tax-efficient'
 
 export interface SimulationParams {
@@ -93,6 +109,7 @@ export interface SimulationParams {
   loans: Loan[]
   inflationRate: number
   withdrawalStrategy: WithdrawalStrategy
+  timeBuckets: TimeBucket[]
 }
 
 export interface YearlyResult {

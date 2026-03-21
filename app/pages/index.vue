@@ -136,6 +136,15 @@ function onFileSelected(event: Event) {
             <InputInflationForm />
           </div>
 
+          <!-- 思い出づくりプラン -->
+          <div class="space-y-4 mt-8">
+            <h2 class="text-lg font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <UIcon name="i-lucide-sparkles" />
+              思い出づくりプラン
+            </h2>
+            <InputTimeBucketSection />
+          </div>
+
           <!-- シミュレーション設定 -->
           <div class="space-y-4 mt-8">
             <h2 class="text-lg font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">

@@ -50,10 +50,13 @@ function removeAccount(id: string) {
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <UIcon name="i-lucide-landmark" />
-          <h3 class="font-semibold">投資口座</h3>
-          <InputHelpTip text="NISA・iDeCo・特定口座を追加し、現在の資産と今後の積立設定を管理します。" />
+        <div>
+          <div class="flex items-center gap-2">
+            <UIcon name="i-lucide-landmark" />
+            <h3 class="font-semibold">投資口座</h3>
+            <InputHelpTip text="NISA・iDeCo・特定口座を追加し、現在の資産と今後の積立設定を管理します。" />
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">NISA・iDeCo・特定口座の資産と積立を管理します</p>
         </div>
         <UDropdownMenu
           :items="accountTypes.map(t => ({ label: t.label, onSelect: () => addAccount(t.value) }))"

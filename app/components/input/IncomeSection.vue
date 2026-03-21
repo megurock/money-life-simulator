@@ -9,6 +9,7 @@
         <h3 class="font-semibold">収入</h3>
         <InputHelpTip text="給与・パート・家賃収入など、年齢帯ごとの年間手取り額を設定します。\n年金・投資運用益は別途自動計算されるため含めません。\n引退後の収入も設定可能です。" />
       </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">給与などの手取り収入を年齢帯ごとに設定します</p>
     </template>
 
     <div class="space-y-6">

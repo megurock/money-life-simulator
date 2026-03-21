@@ -9,6 +9,7 @@ const params = useSimulationParams()
         <UIcon name="i-lucide-trending-up" />
         <h3 class="font-semibold">インフレ率</h3>
       </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">物価上昇による生活費への影響を考慮します</p>
     </template>
 
     <UFormField>

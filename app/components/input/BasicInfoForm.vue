@@ -9,6 +9,7 @@ const params = useSimulationParams()
         <UIcon name="i-lucide-user" />
         <h3 class="font-semibold">基本情報</h3>
       </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">シミュレーションの基準となる年齢を設定します</p>
     </template>
 
     <div class="grid grid-cols-3 gap-4">

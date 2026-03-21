@@ -9,6 +9,7 @@ const params = useSimulationParams()
         <UIcon name="i-lucide-piggy-bank" />
         <h3 class="font-semibold">預貯金</h3>
       </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">銀行口座にある現金の合計額です</p>
     </template>
 
     <UFormField>
