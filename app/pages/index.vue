@@ -13,6 +13,15 @@ useAutoSave(() => params)
 
 const { yearlyResults, depletionAge, finalBalance } = useSimulation(params)
 
+const isParamsEmpty = computed(() => {
+  const hasIncome = params.incomesByAge.length > 0
+  const hasSavings = params.savings > 0
+  const hasAccountBalance = params.accounts.some(a => a.currentBalance > 0)
+  const hasContribution = params.accounts.some(a => a.currentContribution > 0)
+  const hasPension = params.pension.annualAmount > 0
+  return !hasIncome && !hasSavings && !hasAccountBalance && !hasContribution && !hasPension
+})
+
 function resetAll() {
   clearLocalStorage()
   window.location.reload()
@@ -104,6 +113,16 @@ function onFileSelected(event: Event) {
     <main class="max-w-screen-2xl mx-auto px-4 py-6">
       <LayoutDashboardLayout>
         <template #input>
+          <!-- ウェルカムメッセージ（未入力時・2カラム時のみ） -->
+          <ResultDepletionAlert
+            v-if="isParamsEmpty"
+            class="hidden md:block"
+            :depletion-age="null"
+            :life-expectancy="params.basicInfo.lifeExpectancy"
+            :final-balance="0"
+            :is-empty="true"
+          />
+
           <!-- 基本情報 -->
           <InputBasicInfoForm />
 
@@ -159,10 +178,21 @@ function onFileSelected(event: Event) {
         </template>
 
         <template #result>
+          <!-- ウェルカムメッセージ（未入力時・1カラム時のみ） -->
           <ResultDepletionAlert
+            v-if="isParamsEmpty"
+            class="md:hidden"
+            :depletion-age="null"
+            :life-expectancy="params.basicInfo.lifeExpectancy"
+            :final-balance="0"
+            :is-empty="true"
+          />
+          <ResultDepletionAlert
+            v-if="!isParamsEmpty"
             :depletion-age="depletionAge"
             :life-expectancy="params.basicInfo.lifeExpectancy"
             :final-balance="finalBalance"
+            :is-empty="false"
           />
           <ResultSimulationChart :yearly-results="yearlyResults" />
           <ResultSimulationTable :yearly-results="yearlyResults" />
