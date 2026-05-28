@@ -2,7 +2,9 @@ import { watch, type WatchSource } from 'vue'
 import type { SimulationParams } from '~/types/simulation'
 import { createDefaultParams } from './useSimulationParams'
 
-const STORAGE_KEY = 'money-life-simulator-params'
+const STORAGE_PREFIX = 'money-life-simulator:'
+const STORAGE_KEY = `${STORAGE_PREFIX}params`
+const LEGACY_STORAGE_KEY = 'money-life-simulator-params'
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 export function saveToLocalStorage(params: SimulationParams): void {
@@ -16,7 +18,15 @@ export function saveToLocalStorage(params: SimulationParams): void {
 
 export function loadFromLocalStorage(): SimulationParams | null {
   try {
-    const json = localStorage.getItem(STORAGE_KEY)
+    let json = localStorage.getItem(STORAGE_KEY)
+    if (!json) {
+      const legacy = localStorage.getItem(LEGACY_STORAGE_KEY)
+      if (legacy) {
+        localStorage.setItem(STORAGE_KEY, legacy)
+        localStorage.removeItem(LEGACY_STORAGE_KEY)
+        json = legacy
+      }
+    }
     if (!json) return null
     return JSON.parse(json) as SimulationParams
   } catch {
@@ -27,6 +37,7 @@ export function loadFromLocalStorage(): SimulationParams | null {
 
 export function clearLocalStorage(): void {
   localStorage.removeItem(STORAGE_KEY)
+  localStorage.removeItem(LEGACY_STORAGE_KEY)
 }
 
 export function useAutoSave(params: WatchSource<SimulationParams>): void {

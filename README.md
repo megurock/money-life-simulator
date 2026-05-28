@@ -197,9 +197,29 @@ pnpm build
 # ビルドのプレビュー
 pnpm preview
 
+# 静的サイト生成（.output/public に出力）
+pnpm generate
+
 # 型チェック
 pnpm typecheck
 
 # Lint
 pnpm lint
 ```
+
+## GitHub Pages へのデプロイ
+
+`main` ブランチへの push で `.github/workflows/deploy.yml` が走り、`nuxt generate` の結果を GitHub Pages に自動配信します。
+
+### 初回セットアップ
+
+1. GitHub リポジトリの **Settings → Pages** を開く
+2. **Source** を「**GitHub Actions**」に変更
+3. `main` への push、もしくは Actions タブから `deploy` workflow を手動実行
+
+公開 URL: `https://<user>.github.io/money-life-simulator/`
+
+### サブパス配信の仕組み
+
+リポジトリ Pages はサブパス（`/money-life-simulator/`）配下で配信されるため、workflow 内で `NUXT_APP_BASE_URL=/money-life-simulator/` を環境変数として渡しています。カスタムドメインや user/organization site を使う場合は workflow からこの環境変数を削除してください。
+
