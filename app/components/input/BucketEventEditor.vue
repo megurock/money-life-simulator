@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { BucketEvent } from '~/types/simulation'
+const params = useSimulationParams()
 
-defineProps<{
-  event: BucketEvent
+const props = defineProps<{
+  bucketId: string
+  eventId: string
   fromAge: number
   toAge: number
 }>()
@@ -10,6 +11,13 @@ defineProps<{
 const emit = defineEmits<{
   remove: [id: string]
 }>()
+
+const event = computed(() => {
+  const bucket = params.timeBuckets.find(b => b.id === props.bucketId)
+  const found = bucket?.events.find(e => e.id === props.eventId)
+  if (!found) throw new Error(`Event not found: ${props.eventId}`)
+  return found
+})
 
 const recurrenceOptions = [
   { label: '一回きり', value: 'once' },
@@ -21,43 +29,39 @@ const recurrenceOptions = [
 <template>
   <div class="grid grid-cols-12 gap-2 items-end">
     <div class="col-span-3">
-      <UFormField label="内容" size="sm">
+      <UFormField label="内容">
         <UInput
           v-model="event.description"
-          size="sm"
           placeholder="家族でハワイ旅行"
         />
       </UFormField>
     </div>
     <div class="col-span-3">
-      <UFormField label="金額" size="sm">
+      <UFormField label="金額">
         <InputMoneyInput
           v-model="event.amount"
-          size="sm"
         />
       </UFormField>
     </div>
     <div class="col-span-2">
-      <UFormField label="年齢" size="sm">
+      <UFormField label="年齢">
         <UInput
           v-model.number="event.age"
           type="number"
-          size="sm"
           :min="fromAge"
           :max="toAge"
         >
           <template #trailing>
-            <span class="text-xs text-gray-500">歳</span>
+            <span class="text-xs text-gray-600">歳</span>
           </template>
         </UInput>
       </UFormField>
     </div>
     <div class="col-span-3">
-      <UFormField label="繰り返し" size="sm">
+      <UFormField label="繰り返し">
         <USelect
           v-model="event.recurrence"
           :items="recurrenceOptions"
-          size="sm"
         />
       </UFormField>
     </div>
@@ -66,7 +70,6 @@ const recurrenceOptions = [
         icon="i-lucide-trash-2"
         color="error"
         variant="ghost"
-        size="sm"
         @click="emit('remove', event.id)"
       />
     </div>

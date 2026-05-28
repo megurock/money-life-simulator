@@ -7,9 +7,13 @@ const params = useSimulationParams()
     <template #header>
       <div class="flex items-center gap-2">
         <UIcon name="i-lucide-trending-up" />
-        <h3 class="font-semibold">インフレ率</h3>
+        <h3 class="font-semibold">
+          インフレ率
+        </h3>
       </div>
-      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">物価上昇による生活費への影響を考慮します</p>
+      <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+        物価上昇による生活費への影響を考慮します
+      </p>
     </template>
 
     <UFormField>
@@ -27,7 +31,7 @@ const params = useSimulationParams()
         :step="0.1"
       >
         <template #trailing>
-          <span class="text-sm text-gray-500">%</span>
+          <span class="text-sm text-gray-600">%</span>
         </template>
       </UInput>
       <template #hint>

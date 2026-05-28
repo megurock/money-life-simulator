@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { Fund } from '~/types/simulation'
 import { NISA_LIMITS, IDECO_MONTHLY_LIMIT } from '~/utils/constants'
 
 const params = useSimulationParams()
 
 const props = defineProps<{
-  fund: Fund
+  accountId: string
+  fundId: string
   isNisa?: boolean
   accountType?: string
 }>()
@@ -14,14 +14,21 @@ const emit = defineEmits<{
   remove: [id: string]
 }>()
 
+const fund = computed(() => {
+  const acc = params.accounts.find(a => a.id === props.accountId)
+  const found = acc?.funds.find(f => f.id === props.fundId)
+  if (!found) throw new Error(`Fund not found: ${props.fundId}`)
+  return found
+})
+
 const slotLabel = computed(() => {
-  if (!props.isNisa || !props.fund.nisaSlot) return null
-  return props.fund.nisaSlot === 'tsumitate' ? 'つみたて' : '成長'
+  if (!props.isNisa || !fund.value.nisaSlot) return null
+  return fund.value.nisaSlot === 'tsumitate' ? 'つみたて' : '成長'
 })
 
 const slotColor = computed(() => {
-  if (!props.fund.nisaSlot) return 'neutral'
-  return props.fund.nisaSlot === 'tsumitate' ? 'info' : 'success'
+  if (!fund.value.nisaSlot) return 'neutral'
+  return fund.value.nisaSlot === 'tsumitate' ? 'info' : 'success'
 })
 
 const IDECO_MAX_AGE = 65
@@ -37,8 +44,8 @@ const endAgeMax = computed(() =>
 )
 
 const monthlyMax = computed(() => {
-  if (props.fund.nisaSlot === 'tsumitate') return NISA_LIMITS.tsumitate / 12
-  if (props.fund.nisaSlot === 'growth') return NISA_LIMITS.growth / 12
+  if (fund.value.nisaSlot === 'tsumitate') return NISA_LIMITS.tsumitate / 12
+  if (fund.value.nisaSlot === 'growth') return NISA_LIMITS.growth / 12
   if (props.accountType === 'ideco') return IDECO_MONTHLY_LIMIT
   return undefined
 })
@@ -46,8 +53,15 @@ const monthlyMax = computed(() => {
 
 <template>
   <div class="space-y-1">
-    <div v-if="slotLabel" class="flex items-center justify-between mb-1">
-      <UBadge :color="(slotColor as any)" variant="subtle" size="xs">
+    <div
+      v-if="slotLabel"
+      class="flex items-center justify-between mb-1"
+    >
+      <UBadge
+        :color="(slotColor as any)"
+        variant="subtle"
+        size="xs"
+      >
         {{ slotLabel }}
       </UBadge>
       <UButton
@@ -56,90 +70,89 @@ const monthlyMax = computed(() => {
         color="error"
         variant="ghost"
         size="xs"
-        @click="emit('remove', props.fund.id)"
+        @click="emit('remove', fund.id)"
       />
     </div>
 
     <!-- NISA: 3列均等（現在までのレイアウトに合わせる） -->
-    <div v-if="isNisa" class="grid grid-cols-3 gap-3">
-      <UFormField label="ファンド名" size="sm">
+    <div
+      v-if="isNisa"
+      class="grid grid-cols-3 gap-3"
+    >
+      <UFormField label="ファンド名">
         <UInput
-          v-model="props.fund.name"
-          size="sm"
+          v-model="fund.name"
           placeholder="例: S&P500"
         />
       </UFormField>
-      <UFormField label="月額積立" size="sm">
+      <UFormField label="月額積立">
         <InputMoneyInput
-          v-model="props.fund.monthlyContribution"
-          size="sm"
+          v-model="fund.monthlyContribution"
           :max="monthlyMax"
         />
       </UFormField>
-      <UFormField label="利回り" size="sm">
+      <UFormField label="利回り">
         <UInput
-          v-model.number="props.fund.expectedReturn"
+          v-model.number="fund.expectedReturn"
           type="number"
-          size="sm"
           :min="0"
           :max="30"
           :step="0.1"
         >
           <template #trailing>
-            <span class="text-xs text-gray-500">%</span>
+            <span class="text-xs text-gray-600">%</span>
           </template>
         </UInput>
       </UFormField>
     </div>
 
     <!-- iDeCo / 特定口座: 4列（ファンド名・月額・利回り・終了） + 削除 -->
-    <div v-else class="grid grid-cols-12 gap-2 items-end">
+    <div
+      v-else
+      class="grid grid-cols-12 gap-2 items-end"
+    >
       <div class="col-span-4">
-        <UFormField label="ファンド名" size="sm">
+        <UFormField label="ファンド名">
           <UInput
-            v-model="props.fund.name"
-            size="sm"
+            v-model="fund.name"
             placeholder="例: S&P500"
           />
         </UFormField>
       </div>
       <div class="col-span-3">
-        <UFormField label="月額積立" size="sm">
+        <UFormField label="月額積立">
           <InputMoneyInput
-            v-model="props.fund.monthlyContribution"
-            size="sm"
+            v-model="fund.monthlyContribution"
             :max="monthlyMax"
           />
         </UFormField>
       </div>
       <div class="col-span-2">
-        <UFormField label="利回り" size="sm">
+        <UFormField label="利回り">
           <UInput
-            v-model.number="props.fund.expectedReturn"
+            v-model.number="fund.expectedReturn"
             type="number"
-            size="sm"
             :min="0"
             :max="30"
             :step="0.1"
           >
             <template #trailing>
-              <span class="text-xs text-gray-500">%</span>
+              <span class="text-xs text-gray-600">%</span>
             </template>
           </UInput>
         </UFormField>
       </div>
       <div class="col-span-2">
-        <UFormField label="終了" size="sm">
+        <UFormField label="終了">
           <UInput
-            v-model.number="props.fund.endAge"
+            v-model.number="fund.endAge"
             type="number"
-            size="sm"
             :placeholder="String(defaultEndAge)"
             :min="params.basicInfo.currentAge"
             :max="endAgeMax"
           >
             <template #trailing>
-              <span class="text-xs text-gray-500">歳</span>
+              <span class="text-xs text-gray-600">歳</span>
             </template>
           </UInput>
         </UFormField>
@@ -149,8 +162,7 @@ const monthlyMax = computed(() => {
           icon="i-lucide-trash-2"
           color="error"
           variant="ghost"
-          size="sm"
-          @click="emit('remove', props.fund.id)"
+          @click="emit('remove', fund.id)"
         />
       </div>
     </div>

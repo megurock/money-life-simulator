@@ -4,7 +4,11 @@ const params = useSimulationParams()
 function recalcToAges() {
   const entries = params.incomesByAge
   for (let i = 0; i < entries.length - 1; i++) {
-    entries[i].toAge = entries[i + 1].fromAge - 1
+    const current = entries[i]
+    const next = entries[i + 1]
+    if (current && next) {
+      current.toAge = next.fromAge - 1
+    }
   }
 }
 
@@ -44,41 +48,38 @@ function onToAgeChange(index: number) {
       class="grid grid-cols-12 gap-2 items-end"
     >
       <div class="col-span-2">
-        <UFormField :label="index === 0 ? '開始' : ''" size="sm">
+        <UFormField :label="index === 0 ? '開始' : ''">
           <UInput
             v-model.number="entry.fromAge"
             type="number"
-            size="sm"
             :min="params.basicInfo.currentAge"
             @update:model-value="onFromAgeChange"
           >
             <template #trailing>
-              <span class="text-xs text-gray-500">歳</span>
+              <span class="text-xs text-gray-600">歳</span>
             </template>
           </UInput>
         </UFormField>
       </div>
       <div class="col-span-2">
-        <UFormField :label="index === 0 ? '終了' : ''" size="sm">
+        <UFormField :label="index === 0 ? '終了' : ''">
           <UInput
             v-model.number="entry.toAge"
             type="number"
-            size="sm"
             :min="entry.fromAge"
             :disabled="index < params.incomesByAge.length - 1"
             @update:model-value="onToAgeChange(index)"
           >
             <template #trailing>
-              <span class="text-xs text-gray-500">歳</span>
+              <span class="text-xs text-gray-600">歳</span>
             </template>
           </UInput>
         </UFormField>
       </div>
       <div class="col-span-6">
-        <UFormField :label="index === 0 ? '年間手取り' : ''" size="sm">
+        <UFormField :label="index === 0 ? '年間手取り' : ''">
           <InputMoneyInput
             v-model="entry.annualIncome"
-            size="sm"
           />
         </UFormField>
       </div>
@@ -87,13 +88,15 @@ function onToAgeChange(index: number) {
           icon="i-lucide-trash-2"
           color="error"
           variant="ghost"
-          size="sm"
           @click="removeEntry(index)"
         />
       </div>
     </div>
 
-    <p v-if="params.incomesByAge.length > 0" class="text-xs text-gray-400">
+    <p
+      v-if="params.incomesByAge.length > 0"
+      class="text-xs text-gray-600"
+    >
       ※ 設定された期間外は収入0として計算されます
     </p>
 
@@ -101,7 +104,6 @@ function onToAgeChange(index: number) {
       icon="i-lucide-plus"
       label="期間追加"
       variant="soft"
-      size="sm"
       @click="addEntry"
     />
   </div>

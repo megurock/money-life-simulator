@@ -15,7 +15,9 @@ const { chartOptions } = useChartOptions(yearlyResultsRef)
     <template #header>
       <div class="flex items-center gap-2">
         <UIcon name="i-lucide-chart-line" />
-        <h3 class="font-semibold">資産推移グラフ</h3>
+        <h3 class="font-semibold">
+          資産推移グラフ
+        </h3>
       </div>
     </template>
 

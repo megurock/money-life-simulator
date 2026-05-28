@@ -27,10 +27,14 @@ const strategies: { value: WithdrawalStrategy, label: string, description: strin
     <template #header>
       <div class="flex items-center gap-2">
         <UIcon name="i-lucide-arrow-down-circle" />
-        <h3 class="font-semibold">取り崩し戦略</h3>
+        <h3 class="font-semibold">
+          取り崩し戦略
+        </h3>
         <InputHelpTip text="支出が収入を上回った場合に、どの資産から先に取り崩すかを選択します。\niDeCo は60歳未満では取り崩しできません。" />
       </div>
-      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">支出が収入を上回ったとき、どの資産から取り崩すかを選択します</p>
+      <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+        支出が収入を上回ったとき、どの資産から取り崩すかを選択します
+      </p>
     </template>
 
     <div class="space-y-2">
@@ -47,10 +51,10 @@ const strategies: { value: WithdrawalStrategy, label: string, description: strin
           type="radio"
           :value="s.value"
           class="mt-0.5 accent-primary"
-        />
+        >
         <div>
           <div class="text-sm font-medium">{{ s.label }}</div>
-          <div class="text-xs text-gray-500">{{ s.description }}</div>
+          <div class="text-xs text-gray-600">{{ s.description }}</div>
         </div>
       </label>
     </div>

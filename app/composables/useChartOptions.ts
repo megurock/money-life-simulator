@@ -2,6 +2,13 @@ import { computed } from 'vue'
 import type { YearlyResult } from '~/types/simulation'
 import type { ComputedRef } from 'vue'
 
+type AxisTooltipParam = {
+  axisValue: string | number
+  value: number
+  marker: string
+  seriesName: string
+}
+
 export function useChartOptions(yearlyResults: ComputedRef<YearlyResult[]>) {
   const chartOptions = computed(() => {
     const results = yearlyResults.value
@@ -18,9 +25,9 @@ export function useChartOptions(yearlyResults: ComputedRef<YearlyResult[]>) {
     return {
       tooltip: {
         trigger: 'axis',
-        formatter(params: any[]) {
+        formatter(params: AxisTooltipParam[]) {
           if (!params?.length) return ''
-          const age = params[0].axisValue
+          const age = params[0]!.axisValue
           let html = `<strong>${age}</strong><br/>`
           for (const p of params) {
             const value = (p.value / 10000).toFixed(0)

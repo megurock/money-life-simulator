@@ -14,12 +14,20 @@ const yearsShort = computed(() => {
 
 <template>
   <!-- 未入力状態: ウェルカムメッセージ -->
-  <div v-if="isEmpty" class="rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 p-4">
+  <div
+    v-if="isEmpty"
+    class="rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 p-4"
+  >
     <div class="flex items-start gap-3">
-      <UIcon name="i-lucide-hand-helping" class="text-gray-400 dark:text-gray-500 text-xl flex-shrink-0 mt-0.5" />
+      <UIcon
+        name="i-lucide-hand-helping"
+        class="text-gray-600 dark:text-gray-400 text-xl flex-shrink-0 mt-0.5"
+      />
       <div>
-        <h4 class="font-semibold text-gray-700 dark:text-gray-300">はじめましょう</h4>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <h4 class="font-semibold text-gray-700 dark:text-gray-300">
+          はじめましょう
+        </h4>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
           収入や資産の情報を入力すると、将来のお金の流れをシミュレーションできます。
         </p>
       </div>
@@ -27,11 +35,19 @@ const yearsShort = computed(() => {
   </div>
 
   <!-- 資産枯渇 -->
-  <div v-else-if="depletionAge !== null" class="rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20 p-4">
+  <div
+    v-else-if="depletionAge !== null"
+    class="rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20 p-4"
+  >
     <div class="flex items-start gap-3">
-      <UIcon name="i-lucide-alert-triangle" class="text-red-500 text-xl flex-shrink-0 mt-0.5" />
+      <UIcon
+        name="i-lucide-alert-triangle"
+        class="text-red-500 text-xl flex-shrink-0 mt-0.5"
+      />
       <div>
-        <h4 class="font-semibold text-red-700 dark:text-red-400">資産枯渇の警告</h4>
+        <h4 class="font-semibold text-red-700 dark:text-red-400">
+          資産枯渇の警告
+        </h4>
         <p class="text-sm text-red-600 dark:text-red-300 mt-1">
           <strong>{{ depletionAge }}歳</strong>で資産が枯渇する見込みです。
           想定寿命の{{ lifeExpectancy }}歳まで<strong>{{ yearsShort }}年</strong>不足します。
@@ -46,11 +62,19 @@ const yearsShort = computed(() => {
   </div>
 
   <!-- 資産枯渇なし -->
-  <div v-else class="rounded-lg border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20 p-4">
+  <div
+    v-else
+    class="rounded-lg border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20 p-4"
+  >
     <div class="flex items-start gap-3">
-      <UIcon name="i-lucide-check-circle" class="text-green-500 text-xl flex-shrink-0 mt-0.5" />
+      <UIcon
+        name="i-lucide-check-circle"
+        class="text-green-500 text-xl flex-shrink-0 mt-0.5"
+      />
       <div>
-        <h4 class="font-semibold text-green-700 dark:text-green-400">資産は枯渇しません</h4>
+        <h4 class="font-semibold text-green-700 dark:text-green-400">
+          資産は枯渇しません
+        </h4>
         <p class="text-sm text-green-600 dark:text-green-300 mt-1">
           {{ lifeExpectancy }}歳時点の残高: <strong>{{ Math.round(finalBalance / 10000).toLocaleString() }}万円</strong>
         </p>

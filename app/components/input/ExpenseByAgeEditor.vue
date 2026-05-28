@@ -4,11 +4,10 @@ const params = useSimulationParams()
 function recalcToAges() {
   const entries = params.expensesByAge
   for (let i = 0; i < entries.length; i++) {
-    if (i < entries.length - 1) {
-      entries[i].toAge = entries[i + 1].fromAge - 1
-    } else {
-      entries[i].toAge = params.basicInfo.lifeExpectancy
-    }
+    const current = entries[i]
+    if (!current) continue
+    const next = entries[i + 1]
+    current.toAge = next ? next.fromAge - 1 : params.basicInfo.lifeExpectancy
   }
 }
 
@@ -45,25 +44,23 @@ watch(() => params.basicInfo.lifeExpectancy, () => {
       class="grid grid-cols-12 gap-2 items-end"
     >
       <div class="col-span-4">
-        <UFormField :label="index === 0 ? '年齢' : ''" size="sm">
+        <UFormField :label="index === 0 ? '年齢' : ''">
           <UInput
             v-model.number="entry.fromAge"
             type="number"
-            size="sm"
             :min="params.basicInfo.currentAge"
             @update:model-value="onFromAgeChange"
           >
             <template #trailing>
-              <span class="text-xs text-gray-500">歳から</span>
+              <span class="text-xs text-gray-600">歳から</span>
             </template>
           </UInput>
         </UFormField>
       </div>
       <div class="col-span-6">
-        <UFormField :label="index === 0 ? '月額支出' : ''" size="sm">
+        <UFormField :label="index === 0 ? '月額支出' : ''">
           <InputMoneyInput
             v-model="entry.monthlyExpense"
-            size="sm"
           />
         </UFormField>
       </div>
@@ -72,13 +69,15 @@ watch(() => params.basicInfo.lifeExpectancy, () => {
           icon="i-lucide-trash-2"
           color="error"
           variant="ghost"
-          size="sm"
           @click="removeEntry(index)"
         />
       </div>
     </div>
 
-    <p v-if="params.expensesByAge.length > 0" class="text-xs text-gray-400">
+    <p
+      v-if="params.expensesByAge.length > 0"
+      class="text-xs text-gray-600"
+    >
       ※ 想定寿命（{{ params.basicInfo.lifeExpectancy }}歳）まで
     </p>
 
@@ -86,7 +85,6 @@ watch(() => params.basicInfo.lifeExpectancy, () => {
       icon="i-lucide-plus"
       label="期間追加"
       variant="soft"
-      size="sm"
       @click="addEntry"
     />
   </div>

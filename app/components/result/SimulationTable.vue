@@ -91,10 +91,12 @@ const filteredResults = computed(() => {
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <UIcon name="i-lucide-table" />
-          <h3 class="font-semibold">年齢別収支テーブル</h3>
+          <h3 class="font-semibold">
+            年齢別収支テーブル
+          </h3>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-xs text-gray-400">表示間隔:</span>
+          <span class="text-xs text-gray-600">表示間隔:</span>
           <div class="flex gap-1">
             <UButton
               v-for="opt in intervalOptions"
@@ -114,7 +116,9 @@ const filteredResults = computed(() => {
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-gray-200 dark:border-gray-700">
-            <th class="py-2 px-3 text-left">年齢</th>
+            <th class="py-2 px-3 text-left">
+              年齢
+            </th>
             <th class="py-2 px-3 text-right">
               <span class="inline-flex items-center gap-1">
                 収入
@@ -133,7 +137,12 @@ const filteredResults = computed(() => {
                 <InputHelpTip text="生活費（インフレ補正済み）+ 特別支出 + ローン + 税金の合計\n※投資拠出は総資産内で振り替えられるため含みません" />
               </span>
             </th>
-            <th v-if="hasLoans" class="py-2 px-3 text-right">ローン</th>
+            <th
+              v-if="hasLoans"
+              class="py-2 px-3 text-right"
+            >
+              ローン
+            </th>
             <th class="py-2 px-3 text-right">
               <span class="inline-flex items-center gap-1">
                 税金
@@ -162,9 +171,12 @@ const filteredResults = computed(() => {
             <td class="py-2 px-3 font-medium">
               <div>
                 {{ result.age }}歳
-                <span class="text-xs text-gray-400">({{ result.year }})</span>
+                <span class="text-xs text-gray-600">({{ result.year }})</span>
               </div>
-              <div v-if="specialAges.has(result.age)" class="flex flex-wrap gap-1 mt-0.5">
+              <div
+                v-if="specialAges.has(result.age)"
+                class="flex flex-wrap gap-1 mt-0.5"
+              >
                 <UBadge
                   v-for="(event, i) in getSpecialEvents(result.age)"
                   :key="i"
@@ -176,7 +188,10 @@ const filteredResults = computed(() => {
                 </UBadge>
               </div>
             </td>
-            <td class="py-2 px-3 text-right" :class="result.salaryIncome > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-300 dark:text-gray-600'">
+            <td
+              class="py-2 px-3 text-right"
+              :class="result.salaryIncome > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-600'"
+            >
               {{ result.salaryIncome > 0 ? formatMoney(result.salaryIncome) + '円' : '-' }}
             </td>
             <td class="py-2 px-3 text-right text-green-600 dark:text-green-400">
@@ -185,13 +200,20 @@ const filteredResults = computed(() => {
             <td class="py-2 px-3 text-right text-orange-600 dark:text-orange-400">
               {{ formatMoney(result.totalExpense) }}円
             </td>
-            <td v-if="hasLoans" class="py-2 px-3 text-right" :class="result.loanPayment > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-gray-300 dark:text-gray-600'">
+            <td
+              v-if="hasLoans"
+              class="py-2 px-3 text-right"
+              :class="result.loanPayment > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-gray-400 dark:text-gray-600'"
+            >
               {{ result.loanPayment > 0 ? formatMoney(result.loanPayment) + '円' : '-' }}
             </td>
-            <td class="py-2 px-3 text-right text-gray-500">
+            <td class="py-2 px-3 text-right text-gray-600">
               {{ formatMoney(result.taxAmount) }}円
             </td>
-            <td class="py-2 px-3 text-right font-semibold" :class="result.isDepleted ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'">
+            <td
+              class="py-2 px-3 text-right font-semibold"
+              :class="result.isDepleted ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'"
+            >
               {{ formatMoney(result.totalBalance) }}円
             </td>
           </tr>

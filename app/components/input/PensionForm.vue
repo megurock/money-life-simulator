@@ -23,9 +23,13 @@ const adjustedAnnual = computed(() => {
     <template #header>
       <div class="flex items-center gap-2">
         <UIcon name="i-lucide-shield-check" />
-        <h3 class="font-semibold">年金</h3>
+        <h3 class="font-semibold">
+          年金
+        </h3>
       </div>
-      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">公的年金の受給額と開始年齢を設定します</p>
+      <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+        公的年金の受給額と開始年齢を設定します
+      </p>
     </template>
 
     <div class="space-y-4">

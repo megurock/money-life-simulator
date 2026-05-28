@@ -24,31 +24,28 @@ function removeExpense(id: string) {
       class="grid grid-cols-12 gap-2 items-end"
     >
       <div class="col-span-2">
-        <UFormField label="年齢" size="sm">
+        <UFormField label="年齢">
           <UInput
             v-model.number="expense.age"
             type="number"
-            size="sm"
           >
             <template #trailing>
-              <span class="text-xs text-gray-500">歳</span>
+              <span class="text-xs text-gray-600">歳</span>
             </template>
           </UInput>
         </UFormField>
       </div>
       <div class="col-span-4">
-        <UFormField label="金額" size="sm">
+        <UFormField label="金額">
           <InputMoneyInput
             v-model="expense.amount"
-            size="sm"
           />
         </UFormField>
       </div>
       <div class="col-span-4">
-        <UFormField label="内容" size="sm">
+        <UFormField label="内容">
           <UInput
             v-model="expense.description"
-            size="sm"
             placeholder="住宅修繕、車購入など"
           />
         </UFormField>
@@ -58,7 +55,6 @@ function removeExpense(id: string) {
           icon="i-lucide-trash-2"
           color="error"
           variant="ghost"
-          size="sm"
           @click="removeExpense(expense.id)"
         />
       </div>
@@ -68,7 +64,6 @@ function removeExpense(id: string) {
       icon="i-lucide-plus"
       label="特別支出追加"
       variant="soft"
-      size="sm"
       @click="addExpense"
     />
   </div>

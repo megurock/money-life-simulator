@@ -25,11 +25,17 @@ const formattedHtml = computed(() => {
     :content="{ side: 'top', sideOffset: 8 }"
     :ui="{ content: '!h-auto px-3 py-2' }"
   >
-    <UIcon name="i-lucide-circle-help" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-default text-sm" />
+    <UIcon
+      name="i-lucide-circle-help"
+      class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-default text-sm"
+    />
 
     <template #content>
       <!-- eslint-disable-next-line vue/no-v-html -->
-      <p class="max-w-xs text-xs" v-html="formattedHtml" />
+      <p
+        class="max-w-xs text-xs"
+        v-html="formattedHtml"
+      />
     </template>
   </UTooltip>
 </template>

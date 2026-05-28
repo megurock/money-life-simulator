@@ -1,36 +1,42 @@
 <script setup lang="ts">
-import type { TimeBucket } from '~/types/simulation'
+const params = useSimulationParams()
 
 const props = defineProps<{
-  bucket: TimeBucket
+  bucketId: string
 }>()
 
 const emit = defineEmits<{
   remove: [id: string]
 }>()
 
+const bucket = computed(() => {
+  const found = params.timeBuckets.find(b => b.id === props.bucketId)
+  if (!found) throw new Error(`Bucket not found: ${props.bucketId}`)
+  return found
+})
+
 function addEvent() {
-  props.bucket.events.push({
+  bucket.value.events.push({
     id: crypto.randomUUID(),
     description: '',
     amount: 500_000,
-    age: props.bucket.fromAge,
+    age: bucket.value.fromAge,
     recurrence: 'once'
   })
 }
 
 function removeEvent(id: string) {
-  const index = props.bucket.events.findIndex(e => e.id === id)
-  if (index >= 0) props.bucket.events.splice(index, 1)
+  const index = bucket.value.events.findIndex(e => e.id === id)
+  if (index >= 0) bucket.value.events.splice(index, 1)
 }
 
 const totalCost = computed(() => {
   let total = 0
-  for (const event of props.bucket.events) {
+  for (const event of bucket.value.events) {
     if (event.recurrence === 'once') {
       total += event.amount
     } else {
-      const years = props.bucket.toAge - event.age + 1
+      const years = bucket.value.toAge - event.age + 1
       const count = event.recurrence === 'yearly' ? years : Math.ceil(years / 2)
       total += event.amount * count
     }
@@ -56,10 +62,10 @@ function formatMoney(value: number): string {
           class="w-20"
         >
           <template #trailing>
-            <span class="text-xs text-gray-500">歳</span>
+            <span class="text-xs text-gray-600">歳</span>
           </template>
         </UInput>
-        <span class="text-gray-400">〜</span>
+        <span class="text-gray-600">〜</span>
         <UInput
           v-model.number="bucket.toAge"
           type="number"
@@ -67,19 +73,21 @@ function formatMoney(value: number): string {
           class="w-20"
         >
           <template #trailing>
-            <span class="text-xs text-gray-500">歳</span>
+            <span class="text-xs text-gray-600">歳</span>
           </template>
         </UInput>
         <UInput
           v-model="bucket.title"
-          size="sm"
           placeholder="タイトル（例: 自由な時間）"
           variant="none"
           class="font-medium"
         />
       </div>
       <div class="flex items-center gap-2">
-        <span v-if="totalCost > 0" class="text-xs text-gray-500">
+        <span
+          v-if="totalCost > 0"
+          class="text-xs text-gray-600"
+        >
           合計: {{ formatMoney(totalCost) }}円
         </span>
         <UButton
@@ -96,7 +104,8 @@ function formatMoney(value: number): string {
       <InputBucketEventEditor
         v-for="event in bucket.events"
         :key="event.id"
-        :event="event"
+        :bucket-id="bucket.id"
+        :event-id="event.id"
         :from-age="bucket.fromAge"
         :to-age="bucket.toAge"
         @remove="removeEvent"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = withDefaults(defineProps<{
-  modelValue: number
+  modelValue: number | undefined
   min?: number
   max?: number
   step?: number
@@ -54,15 +54,18 @@ function onBlur() {
 <template>
   <UInput
     :model-value="editing ? rawInput : displayValue"
-    @update:model-value="onInput"
-    @focus="onFocus"
-    @blur="onBlur"
     inputmode="numeric"
     :size="size"
     :placeholder="effectivePlaceholder"
+    @update:model-value="onInput"
+    @focus="onFocus"
+    @blur="onBlur"
   >
     <template #trailing>
-      <span :class="size === 'sm' ? 'text-xs' : 'text-sm'" class="text-gray-500">{{ unit }}</span>
+      <span
+        :class="size === 'sm' ? 'text-xs' : 'text-sm'"
+        class="text-gray-600"
+      >{{ unit }}</span>
     </template>
   </UInput>
 </template>

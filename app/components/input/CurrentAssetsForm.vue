@@ -22,7 +22,7 @@ function getAccountTotalContribution(a: typeof params.accounts[number]): number 
 }
 
 const accountSummaries = computed(() => {
-  return params.accounts.map(a => {
+  return params.accounts.map((a) => {
     const balance = getAccountTotalBalance(a)
     const contribution = getAccountTotalContribution(a)
     return {
@@ -56,7 +56,7 @@ const pieData = computed(() => {
   if (params.savings > 0) {
     items.push({
       value: params.savings, name: '預貯金',
-      itemStyle: { color: typeColors.savings },
+      itemStyle: { color: typeColors.savings ?? '#6366f1' },
       gain: 0, gainRate: null, contribution: params.savings
     })
   }
@@ -81,7 +81,7 @@ const pieOptions = computed(() => {
   return {
     tooltip: {
       trigger: 'item',
-      formatter(p: any) {
+      formatter(p: { name: string, marker: string, percent?: number }) {
         const item = pieData.value.find(d => d.name === p.name)
         if (!item) return ''
         const pct = p.percent?.toFixed(1) ?? '0'
@@ -174,24 +174,45 @@ const totalGainRate = computed(() =>
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <UIcon name="i-lucide-wallet" />
-          <h3 class="font-semibold">現在の資産</h3>
+          <h3 class="font-semibold">
+            現在の資産
+          </h3>
         </div>
-        <span v-if="totalAssets > 0" class="text-sm font-semibold text-primary">
+        <span
+          v-if="totalAssets > 0"
+          class="text-sm font-semibold text-primary"
+        >
           合計: {{ Math.round(totalAssets / 10000).toLocaleString() }}万円
         </span>
       </div>
     </template>
 
-    <div v-if="totalAssets > 0" class="space-y-4">
+    <div
+      v-if="totalAssets > 0"
+      class="space-y-4"
+    >
       <!-- 円グラフ -->
-      <div v-if="pieOptions" class="h-[200px]">
-        <VChart :option="pieOptions" autoresize class="w-full h-full" />
+      <div
+        v-if="pieOptions"
+        class="h-[200px]"
+      >
+        <VChart
+          :option="pieOptions"
+          autoresize
+          class="w-full h-full"
+        />
       </div>
 
       <!-- 投資サマリ -->
-      <div v-if="totalContribution > 0" class="flex items-center justify-between text-xs border-t border-gray-100 dark:border-gray-800 pt-3">
-        <span class="text-gray-500">投資合計損益</span>
-        <span :class="totalGain >= 0 ? 'text-green-500' : 'text-red-500'" class="font-medium">
+      <div
+        v-if="totalContribution > 0"
+        class="flex items-center justify-between text-xs border-t border-gray-100 dark:border-gray-800 pt-3"
+      >
+        <span class="text-gray-600">投資合計損益</span>
+        <span
+          :class="totalGain >= 0 ? 'text-green-500' : 'text-red-500'"
+          class="font-medium"
+        >
           {{ totalGainRate }}
           ({{ totalGain >= 0 ? '+' : '' }}{{ Math.round(totalGain / 10000).toLocaleString() }}万円)
         </span>
@@ -200,20 +221,31 @@ const totalGainRate = computed(() =>
       <!-- 現金比率アドバイス -->
       <div class="border-t border-gray-100 dark:border-gray-800 pt-3 space-y-1">
         <div class="flex items-center justify-between text-xs">
-          <span class="text-gray-500">現金比率</span>
-          <span class="font-medium" :class="cashAdvice.isHealthy ? 'text-gray-600 dark:text-gray-300' : 'text-amber-500'">
+          <span class="text-gray-600">現金比率</span>
+          <span
+            class="font-medium"
+            :class="cashAdvice.isHealthy ? 'text-gray-600 dark:text-gray-300' : 'text-amber-500'"
+          >
             {{ cashRatio.toFixed(1) }}%（目安: {{ cashAdvice.recommended }}）
           </span>
         </div>
-        <p class="text-xs text-gray-400">
+        <p class="text-xs text-gray-600">
           {{ cashAdvice.reason }}生活費の6ヶ月〜1年分は現金で保持するのが一般的です。
         </p>
       </div>
     </div>
 
-    <div v-else class="text-center py-6 text-gray-400">
-      <UIcon name="i-lucide-wallet" class="text-3xl mb-2" />
-      <p class="text-sm">預貯金や投資口座を設定すると資産状況が表示されます</p>
+    <div
+      v-else
+      class="text-center py-6 text-gray-600"
+    >
+      <UIcon
+        name="i-lucide-wallet"
+        class="text-3xl mb-2"
+      />
+      <p class="text-sm">
+        預貯金や投資口座を設定すると資産状況が表示されます
+      </p>
     </div>
   </UCard>
 </template>

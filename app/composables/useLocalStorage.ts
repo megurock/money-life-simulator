@@ -69,7 +69,7 @@ export function restoreParams(params: SimulationParams): void {
         existingReturnRate: a.existingReturnRate ?? 5.0
       }))
     : defaults.accounts
-  const savedPension = saved.pension as any
+  const savedPension = saved.pension as Partial<SimulationParams['pension']> & { monthlyAmount?: number }
   params.pension = {
     ...defaults.pension,
     ...saved.pension,
@@ -79,7 +79,8 @@ export function restoreParams(params: SimulationParams): void {
   params.expensesByAge = saved.expensesByAge?.length ? saved.expensesByAge : defaults.expensesByAge
   params.specialExpenses = saved.specialExpenses ?? defaults.specialExpenses
   params.specialIncomes = saved.specialIncomes ?? defaults.specialIncomes
-  params.loans = (saved.loans ?? defaults.loans).map((l: any) => ({
+  type LegacyLoan = SimulationParams['loans'][number] & { monthlyPayment?: number }
+  params.loans = ((saved.loans ?? defaults.loans) as LegacyLoan[]).map(l => ({
     id: l.id,
     name: l.name ?? '',
     annualPayment: l.annualPayment ?? (l.monthlyPayment ? l.monthlyPayment * 12 : 0),

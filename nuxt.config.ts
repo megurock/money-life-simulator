@@ -13,6 +13,10 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  build: {
+    transpile: ['echarts', 'vue-echarts']
+  },
+
   compatibilityDate: '2025-01-15',
 
   nitro: {
@@ -26,9 +30,5 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
-  },
-
-  build: {
-    transpile: ['echarts', 'vue-echarts']
   }
 })

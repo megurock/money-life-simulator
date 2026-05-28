@@ -5,19 +5,19 @@ import { NISA_LIMITS } from './constants'
 interface AccountState {
   id: string
   type: Account['type']
-  existingBalance: number       // 既存資産の残高
-  existingContribution: number  // 既存資産の元本
-  existingReturnRate: number    // 既存資産の利回り
-  newBalance: number            // 新規積立の残高
-  newContribution: number       // 新規積立の元本
+  existingBalance: number // 既存資産の残高
+  existingContribution: number // 既存資産の元本
+  existingReturnRate: number // 既存資産の利回り
+  newBalance: number // 新規積立の残高
+  newContribution: number // 新規積立の元本
   // 旧つみたて NISA
   legacyBalance: number
   legacyContribution: number
   legacyReturnRate: number
-  legacyEndYear: number         // 非課税期限（年）、0 = なし
+  legacyEndYear: number // 非課税期限（年）、0 = なし
   // 旧つみたて NISA 非課税期限切れ後（課税対象）
   taxableBalance: number
-  taxableContribution: number   // 移管時の時価が取得原価になる
+  taxableContribution: number // 移管時の時価が取得原価になる
 }
 
 /**
